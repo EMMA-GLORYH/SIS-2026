@@ -36,6 +36,11 @@ export const NAVIGATION = {
           description: "Mobile phones & laptop diagnostics and repairs",
           href: "/services/hardware-fixing",
         },
+        {
+          label: "Technical Support",
+          description: "Comprehensive IT & system support services",
+          href: "/services/technical-support",
+        },
       ],
     },
     {
@@ -44,7 +49,7 @@ export const NAVIGATION = {
     },
     {
       label: "Team",
-      href: "/team", // no hover
+      href: "/team",
     },
     {
       label: "Contact",
@@ -55,10 +60,11 @@ export const NAVIGATION = {
   footer: {
     services: [
       { label: "Web Development", href: "/services/web-development" },
-      { label: "Applications & Systems", href: "/services/applications" },
+      { label: "Applications & Systems", href: "/services/application-development" },
       { label: "ICT Teaching", href: "/services/ict-teaching" },
       { label: "Graphic Designing", href: "/services/graphic-design" },
       { label: "Hardware Fixing", href: "/services/hardware-fixing" },
+      { label: "Technical Support", href: "/services/technical-support" },
     ],
 
     social: [

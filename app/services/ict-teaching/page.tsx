@@ -235,7 +235,7 @@ export default function ICTTeachingPage() {
               </div>
 
               <Link
-                href="/contact"
+                href="/services/service-request?service=ict-teaching"
                 className="group relative block w-full bg-slate-900 text-white text-center py-6 rounded-2xl font-black text-lg overflow-hidden transition-all hover:bg-emerald-600 active:scale-95 shadow-xl"
               >
                 Request a Proposal

@@ -232,7 +232,7 @@ export default function HardwareFixingPage() {
               </div>
 
               <Link
-                href="/contact"
+                href="/services/service-request?service=hardware-fixing"
                 className="group relative block w-full bg-orange-600 text-white text-center py-5 rounded-2xl font-bold overflow-hidden transition-all active:scale-95 shadow-lg shadow-orange-200"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">

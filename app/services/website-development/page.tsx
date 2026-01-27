@@ -78,7 +78,7 @@ export default function WebDevelopmentPage() {
                <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Services
             </Link>
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter mb-8">
-              Future-Proof <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-cyan-400">Software</span>
+              Future-Proof <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Software</span>
             </h1>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
               We engineer scalable web applications using the same stack as the world's leading tech giants. 
@@ -93,7 +93,7 @@ export default function WebDevelopmentPage() {
           
           <div className="lg:col-span-2">
             
-            {/* Leadership Profile */}
+            {/* UPDATED: Leadership Profile with Local Image */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -101,22 +101,17 @@ export default function WebDevelopmentPage() {
             >
               <div className="relative w-56 h-56 shrink-0">
                 <div className="absolute inset-0 bg-indigo-600 rounded-[4rem] rotate-6" />
-                <div className="relative z-10 w-56 h-56 overflow-hidden rounded-[4rem] bg-white shadow-2xl">
-                  {!imgError ? (
+                <div className="relative z-10 w-56 h-56 overflow-hidden rounded-[4rem] bg-white shadow-2xl border-4 border-white">
                     <Image 
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" 
-                      alt="Project Director"
+                      src="/lead-architect.jpg" // Using your local image
+                      alt="Lead Systems Architect"
                       fill
                       className="object-cover hover:scale-110 transition-transform duration-700"
-                      onError={() => setImgError(true)}
                     />
-                  ) : (
-                    <User size={100} className="text-slate-300" />
-                  )}
                 </div>
               </div>
               <div>
-                <span className="text-indigo-600 font-black tracking-widest text-xs uppercase">Lead Architect</span>
+                <span className="text-indigo-600 font-black tracking-widest text-xs uppercase">Project Director</span>
                 <h3 className="text-3xl font-black text-slate-900 mt-2 mb-4 tracking-tight">Ecosystem Engineering</h3>
                 <p className="text-slate-600 mb-6 text-lg leading-relaxed italic">
                   "A website shouldn't just exist; it should perform. We build systems that handle 
@@ -149,11 +144,14 @@ export default function WebDevelopmentPage() {
               </div>
             </div>
 
-            {/* Visual Process Diagram */}
+            {/* The Software Roadmap with Diagram */}
             <div className="mb-24">
-              <h2 className="text-4xl font-black text-slate-900 mb-12">The Software Roadmap</h2>
+              <h2 className="text-4xl font-black text-slate-900 mb-6">The Software Roadmap</h2>
+              <p className="text-slate-500 mb-10 max-w-xl">We follow a rigorous SDLC (Software Development Life Cycle) to ensure zero-defect deployments.</p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-12">
                 {roadmap.map((item, i) => (
                   <div key={i} className="flex gap-6 p-8 rounded-3xl border border-slate-50 bg-slate-50/30 hover:bg-white hover:shadow-lg transition-all">
                     <div className="text-3xl font-black text-indigo-100">{item.step}</div>
@@ -218,7 +216,7 @@ export default function WebDevelopmentPage() {
               </div>
 
               <Link
-                href="/contact"
+                href="/services/service-request?service=web-development"
                 className="group block w-full bg-slate-900 text-white text-center py-6 rounded-2xl font-black text-lg overflow-hidden transition-all hover:bg-indigo-600 active:scale-95 shadow-xl"
               >
                 Start Build →

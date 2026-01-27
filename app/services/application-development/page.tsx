@@ -69,7 +69,7 @@ export default function ApplicationDevelopmentPage() {
             className="object-cover opacity-40"
             priority
           />
-          <div className="absolute inset-0 bg-linear-to-b from-slate-900/60 to-slate-900" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 to-slate-900" />
         </div>
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -82,7 +82,7 @@ export default function ApplicationDevelopmentPage() {
               Back to Services
             </Link>
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter mb-8 leading-none">
-              Application <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-cyan-400">Systems</span>
+              Application <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Systems</span>
             </h1>
             <p className="text-xl text-slate-300 max-w-3xl leading-relaxed">
               We build heavy-duty software foundations. From custom ERP systems to automated 
@@ -98,7 +98,7 @@ export default function ApplicationDevelopmentPage() {
           {/* --- LEFT CONTENT AREA --- */}
           <div className="lg:col-span-2">
             
-            {/* Lead Profile Card (Using Local Image) */}
+            {/* Lead Profile Card */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -110,7 +110,7 @@ export default function ApplicationDevelopmentPage() {
                 <div className="relative z-10 w-56 h-56 overflow-hidden rounded-3xl bg-slate-200 shadow-2xl border-4 border-white">
                   {!imgError ? (
                     <Image 
-                      src="/images/leader.jpg" // Local image as requested
+                      src="/images/leader.jpg" 
                       alt="Elijah Emmanuel Hienwo"
                       fill
                       className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
@@ -160,20 +160,8 @@ export default function ApplicationDevelopmentPage() {
             {/* Visual SDLC Section */}
             <div className="mb-24">
               <h2 className="text-4xl font-black text-slate-900 mb-12">Engineered Lifecycle</h2>
-              <div className="relative h-96 w-full rounded-[2.5rem] overflow-hidden mb-12 shadow-2xl">
-                 <Image 
-                   src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1200" 
-                   alt="Software Development Lifecycle" 
-                   fill 
-                   className="object-cover"
-                 />
-                 <div className="absolute inset-0 bg-indigo-900/40 flex items-center justify-center">
-                    <div className="px-10 py-4 bg-white/90 backdrop-blur rounded-full font-black text-indigo-900 tracking-widest uppercase">
-                       The SDLC Process
-                    </div>
-                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-12">
                 {roadmap.map((item, i) => (
                   <div key={i} className="flex gap-6 p-8 rounded-3xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all">
                     <div className="text-3xl font-black text-indigo-200">{item.step}</div>
@@ -188,7 +176,7 @@ export default function ApplicationDevelopmentPage() {
               </div>
             </div>
 
-            {/* Tech Stack Chips */}
+            {/* Tech Stack */}
             <motion.div {...fadeIn} className="bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl">
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-10">
@@ -234,11 +222,14 @@ export default function ApplicationDevelopmentPage() {
                 ))}
               </div>
 
+              {/* ACTION LINK: POINTS TO SERVICE REQUEST PAGE */}
               <Link
-                href="/contact"
+                href="/services/service-request?service=application-development"
                 className="group relative block w-full bg-slate-900 text-white text-center py-6 rounded-2xl font-black text-lg overflow-hidden transition-all hover:bg-indigo-600 active:scale-95 shadow-xl"
               >
-                Request a Quote
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  Request a Quote <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
               </Link>
             </motion.div>
 

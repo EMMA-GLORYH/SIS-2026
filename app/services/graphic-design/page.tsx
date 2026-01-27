@@ -248,7 +248,7 @@ export default function GraphicDesignPage() {
               </div>
 
               <Link
-                href="/contact"
+                href="/services/service-request?service=graphic-design"
                 className="group relative block w-full bg-slate-950 text-white text-center py-6 rounded-2xl font-black text-lg overflow-hidden transition-all hover:bg-pink-600 active:scale-95 shadow-xl"
               >
                 Start a Project
