@@ -1,396 +1,236 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  ArrowRight, 
+  ShieldCheck, 
+  Globe, 
+  Zap, 
+  Cpu 
+} from "lucide-react";
 import Link from "next/link";
-import Card from "./components/ui/Card";
-import HeroSlider from "./components/HeroSlider";
-import { services } from "./data/service";
-import { motion, Variants } from "framer-motion";
 
-const fadeInUp: Variants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.8, 
-      ease: [0.2, 0.8, 0.2, 1]
-    } 
-  }
-};
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069",
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072",
+  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070"
+];
 
-const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15 }
-  }
-};
-
-// Service card colors - vibrant gradients
-const serviceColors = [
-  "#3B82F6", // Blue
-  "#8B5CF6", // Purple
-  "#EC4899", // Pink
-  "#10B981", // Emerald
-  "#F59E0B", // Amber
-  "#6366F1", // Indigo
+const TECH_STACK = [
+  { name: "Next.js", logo: "https://cdn.simpleicons.org/nextdotjs/black" },
+  { name: "AWS", logo: "https://cdn.simpleicons.org/amazonaws/232F3E" },
+  { name: "React", logo: "https://cdn.simpleicons.org/react/61DAFB" },
+  { name: "TypeScript", logo: "https://cdn.simpleicons.org/typescript/3178C6" },
+  { name: "Python", logo: "https://cdn.simpleicons.org/python/3776AB" },
+  { name: "Tailwind", logo: "https://cdn.simpleicons.org/tailwindcss/06B6D4" },
+  { name: "PostgreSQL", logo: "https://cdn.simpleicons.org/postgresql/4169E1" },
+  { name: "Docker", logo: "https://cdn.simpleicons.org/docker/2496ED" },
 ];
 
 export default function HomePage() {
-  const heroImages = [
-    "/images/tech-1.jpg",
-    "/images/tech-2.jpg",
-    "/images/tech-3.jpg",
-    "/images/tech-4.jpg",
+  return (
+    <main className="bg-white overflow-x-hidden">
+      <HeroSlider />
+      <TechStackStrip />
+      <InstitutionalServices />
+    </main>
+  );
+}
+
+/* ===================== */
+/* 1. CINEMATIC HERO (Responsive Type) */
+/* ===================== */
+function HeroSlider() {
+  const [index, setIndex] = useState(0);
+
+  const next = () => setIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+  const prev = () => setIndex((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length);
+
+  useEffect(() => {
+    const timer = setInterval(next, 7000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <section className="relative h-[80vh] md:h-[85vh] w-full overflow-hidden bg-[#002147]">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="absolute inset-0"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#002147]/95 via-[#002147]/60 to-transparent z-10" />
+          <img src={HERO_IMAGES[index]} className="h-full w-full object-cover opacity-50" alt="Banner" />
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="relative z-20 flex h-full items-center max-w-7xl mx-auto px-6">
+        <div className="max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 mb-4 md:mb-6"
+          >
+            <span className="w-8 md:w-12 h-[2px] bg-blue-500" />
+            <span className="text-blue-400 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs">
+              Pioneering Tech Solutions
+            </span>
+          </motion.div>
+          
+          {/* RESPONSIVE TYPOGRAPHY: Scales from 3.5xl on mobile to 8xl on desktop */}
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[2.5rem] leading-[1.1] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white mb-6 md:mb-8"
+          >
+            Engineering <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
+              Institutional Growth.
+            </span>
+          </motion.h1>
+
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-slate-300 text-sm sm:text-base md:text-xl max-w-xl mb-8 leading-relaxed font-medium"
+          >
+            Providing world-class software ecosystems and ICT infrastructure for schools, NGOs, and global institutions.
+          </motion.p>
+
+          <Link href="/services/service-request">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-bold text-[10px] md:text-sm uppercase tracking-widest shadow-2xl transition-all flex items-center gap-3"
+            >
+              Consult an Expert <ArrowRight size={18} />
+            </motion.button>
+          </Link>
+
+        </div>
+      </div>
+
+      {/* Manual Navigation (Arrows) - Hidden on very small screens for cleaner UI */}
+      <div className="absolute inset-x-4 md:inset-x-8 top-1/2 z-30 hidden sm:flex -translate-y-1/2 justify-between pointer-events-none">
+        <button onClick={prev} className="pointer-events-auto p-3 md:p-4 rounded-full border border-white/10 text-white hover:bg-white hover:text-[#002147] transition-all backdrop-blur-md">
+          <ChevronLeft size={24} />
+        </button>
+        <button onClick={next} className="pointer-events-auto p-3 md:p-4 rounded-full border border-white/10 text-white hover:bg-white hover:text-[#002147] transition-all backdrop-blur-md">
+          <ChevronRight size={24} />
+        </button>
+      </div>
+
+      {/* Pagination Dots (Responsive spacing) */}
+      <div className="absolute bottom-6 md:bottom-10 left-1/2 z-30 flex -translate-x-1/2 gap-2 md:gap-4">
+        {HERO_IMAGES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`h-1 md:h-1.5 transition-all duration-700 rounded-full ${index === i ? "w-10 md:w-16 bg-blue-500" : "w-3 md:w-4 bg-white/20"}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ===================== */
+/* 2. INFINITE TECH STRIP (Responsive Gaps) */
+/* ===================== */
+function TechStackStrip() {
+  return (
+    <div className="py-10 md:py-16 border-b border-slate-100 bg-white overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-6 mb-6 md:mb-10">
+        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-slate-400 text-center">
+          Our Industrial Tech Stack
+        </p>
+      </div>
+      
+      <div className="flex relative">
+        <motion.div 
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="flex gap-12 md:gap-24 items-center whitespace-nowrap px-10"
+        >
+          {[...TECH_STACK, ...TECH_STACK].map((tech, idx) => (
+            <div key={idx} className="flex items-center gap-3 md:gap-4 group grayscale hover:grayscale-0 transition-all opacity-40 hover:opacity-100 cursor-default">
+              <img src={tech.logo} alt={tech.name} className="h-6 md:h-8 w-auto object-contain" />
+              <span className="text-sm md:text-lg font-black tracking-tighter text-[#002147] uppercase">{tech.name}</span>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== */
+/* 3. ASYMMETRIC SERVICES FLOW (Responsive Grid) */
+/* ===================== */
+function InstitutionalServices() {
+  const features = [
+    { icon: <Cpu size={24} />, title: "Digital Infrastructure", desc: "Enterprise server architecture and secure cloud migration for educational hubs." },
+    { icon: <Globe size={24} />, title: "Custom Ecosystems", desc: "Sophisticated school portals and administrative CMS platforms built to scale." },
+    { icon: <ShieldCheck size={24} />, title: "Information Security", desc: "Military-grade encryption and data privacy protocols for all institutional assets." },
+    { icon: <Zap size={24} />, title: "Agile Development", desc: "Rapid prototyping and deployment cycles to keep your institution ahead of the curve." }
   ];
 
   return (
-    <main className="bg-linear-to-b from-slate-50 to-white text-slate-900 overflow-x-hidden">
-      {/* =================== */}
-      {/* HERO SECTION */}
-      {/* =================== */}
-      <section className="relative">
-        <HeroSlider
-          images={heroImages}
-          overlay={true}
-          title="ICT Solutions for Schools & Institutions"
-          subtitle="Turning digital ideas into reality through professional web development, software engineering, and community-focused ICT support."
-        />
-        {/* Absolute CTA button positioned over the slider */}
-        <div className="absolute bottom-20 left-0 right-0 z-20 flex justify-center pointer-events-none">
-           <motion.div 
-             initial={{ opacity: 0, scale: 0.8 }}
-             animate={{ opacity: 1, scale: 1 }}
-             transition={{ delay: 1.5, duration: 0.5 }}
-             className="pointer-events-auto"
-           >
-             <Link
-               href="/services"
-               className="relative group bg-white text-blue-900 font-bold px-12 py-5 rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-105 overflow-hidden"
-             >
-               <span className="relative z-10">Explore Our Services</span>
-               <div className="absolute inset-0 bg-linear-to-r from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-             </Link>
-           </motion.div>
-        </div>
-      </section>
-
-      {/* =================== */}
-      {/* SERVICES HIGHLIGHT */}
-      {/* =================== */}
-      <motion.section 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={staggerContainer}
-        className="max-w-7xl mx-auto px-6 py-24"
-      >
-        <motion.div variants={fadeInUp} className="text-center mb-16">
-          <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: "4rem" }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="h-1 bg-linear-to-r from-blue-600 to-indigo-600 mx-auto mb-4"
-          />
-          <h2 className="text-sm font-bold tracking-widest text-blue-600 uppercase mb-3">
-            Capabilities
-          </h2>
-          <h3 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            Our Core Services
+    <section className="py-16 md:py-32 max-w-7xl mx-auto px-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-start">
+        {/* Sticky Left Column: Responsive Heading */}
+        <div className="lg:col-span-5 lg:sticky lg:top-32">
+          <h2 className="text-blue-600 text-[10px] md:text-xs font-black uppercase tracking-[0.5em] mb-4 md:mb-6">Capabilities</h2>
+          <h3 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#002147] tracking-tighter leading-[1] mb-6 md:mb-10">
+            Engineered for <br /><span className="text-blue-600">Reliability.</span>
           </h3>
-          <p className="text-slate-600 mt-4 max-w-2xl mx-auto text-lg">
-            Comprehensive ICT solutions tailored for educational institutions and organizations
+          <p className="text-base md:text-xl text-slate-500 leading-relaxed mb-8 md:mb-10">
+            We prioritize functional excellence over trends. Our systems are the technical foundation for institutions that cannot afford downtime.
           </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <motion.div key={service.slug} variants={fadeInUp}>
-              <Link href={`/services/${service.slug}`}>
-                <Card 
-                  variant="gradient" 
-                  accentColor={serviceColors[index % serviceColors.length]}
-                  className="h-full"
-                >
-                  {/* Icon container with gradient */}
-                  <motion.div 
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    className="mb-5"
-                  >
-                    <div 
-                      className="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white text-xl shadow-lg"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${serviceColors[index % serviceColors.length]}, ${serviceColors[(index + 1) % serviceColors.length]})` 
-                      }}
-                    >
-                      {service.title.charAt(0)}
-                    </div>
-                  </motion.div>
-
-                  <h3 className="font-bold text-xl mb-3 text-slate-900 group-hover:text-blue-700 transition-colors">
-                    {service.title}
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed text-sm">
-                    {service.description}
-                  </p>
-
-                  {/* Read more indicator */}
-                  <div className="mt-4 flex items-center gap-2 text-blue-600 font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    Learn more
-                    <motion.span
-                      animate={{ x: [0, 5, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                    >
-                      →
-                    </motion.span>
-                  </div>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
+          <Link href="/services" className="inline-flex items-center gap-4 font-bold text-[#002147] group text-sm md:text-base">
+            <span className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-[#002147] group-hover:text-white transition-all">
+              <ArrowRight size={20} />
+            </span>
+            Full Service Directory
+          </Link>
         </div>
-      </motion.section>
 
-      {/* =================== */}
-      {/* STATS SECTION */}
-      {/* =================== */}
-      <motion.section 
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        className="bg-linear-to-r from-blue-600 to-indigo-700 text-white py-16"
-      >
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { number: "20+", label: "Projects Completed" },
-            { number: "10+", label: "Happy Clients" },
-            { number: "9", label: "Years Experience" },
-            { number: "24/7", label: "Support Available" }
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ scale: 0 }}
-              whileInView={{ scale: 1 }}
-              transition={{ delay: index * 0.1, type: "spring" }}
+        {/* Right Column: Stacked Service Cards */}
+        <div className="lg:col-span-7 space-y-3 md:space-y-4">
+          {features.map((f, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="text-center"
+              whileHover={{ x: 15 }}
+              className="group p-6 md:p-10 bg-slate-50 hover:bg-[#002147] transition-all duration-500 rounded-2xl md:rounded-[2.5rem] overflow-hidden relative cursor-default"
             >
-              <div className="text-4xl md:text-5xl font-bold mb-2 bg-white/20 backdrop-blur-sm rounded-lg py-4">
-                {stat.number}
-              </div>
-              <div className="text-blue-100 font-medium">{stat.label}</div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* =================== */}
-      {/* ABOUT SECTION (Tech Layout) */}
-      {/* =================== */}
-      <section className="bg-slate-900 text-white py-24 relative overflow-hidden">
-        {/* Animated background grid */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(#3B82F6 1px, transparent 1px), linear-gradient(90deg, #3B82F6 1px, transparent 1px)`,
-            backgroundSize: '50px 50px'
-          }} />
-        </div>
-
-        {/* Decorative code background */}
-        <div className="absolute inset-0 opacity-5 font-mono text-xs select-none pointer-events-none p-10 leading-loose">
-          {`<html><body><h1>Innovating Communities</h1><p>Digital Transformation</p></body></html>`}
-        </div>
-
-        <motion.div 
-          initial={{ opacity: 0, x: -50 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="max-w-6xl mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center"
-        >
-          <div>
-            <motion.div
-              initial={{ width: 0 }}
-              whileInView={{ width: "4rem" }}
-              transition={{ duration: 0.8 }}
-              className="h-1 bg-linear-to-r from-blue-500 to-indigo-500 mb-6"
-            />
-            <h2 className="text-4xl font-bold mb-6 bg-linear-to-r from-white to-blue-100 bg-clip-text text-transparent">
-              Empowering through Technology and Creativity
-            </h2>
-            <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-              We focus on practical, affordable, and innovative solutions. Whether it's a school management system or an NGO portal, our code is built to last and scale with your needs.
-            </p>
-            <Link
-              href="/about"
-              className="inline-block border-2 border-blue-500 text-blue-400 font-semibold px-8 py-4 rounded-xl hover:bg-blue-500 hover:text-white transition-all hover:scale-105 shadow-lg hover:shadow-blue-500/50"
-            >
-              The Full Story
-            </Link>
-          </div>
-          
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl relative overflow-hidden"
-          >
-             {/* Window controls */}
-             <div className="flex space-x-2 mb-6">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-             </div>
-             
-             {/* Code content */}
-             <div className="space-y-3">
-               <p className="text-blue-400 font-mono text-sm">// Our Vision</p>
-               <motion.p 
-                 initial={{ opacity: 0, x: -20 }}
-                 whileInView={{ opacity: 1, x: 0 }}
-                 transition={{ delay: 0.5 }}
-                 className="text-slate-300 font-mono text-sm leading-relaxed"
-               >
-                 "To bridge the digital divide in local institutions through high-performance, scalable software solutions and Designs."
-               </motion.p>
-               <p className="text-emerald-400 font-mono text-sm mt-4">// Our Mission</p>
-               <motion.p 
-                 initial={{ opacity: 0, x: -20 }}
-                 whileInView={{ opacity: 1, x: 0 }}
-                 transition={{ delay: 0.7 }}
-                 className="text-slate-300 font-mono text-sm leading-relaxed"
-               >
-                 "Making technology accessible and empowering communities through innovation and Graphics."
-               </motion.p>
-             </div>
-
-             {/* Glow effect */}
-             <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl" />
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* =================== */}
-      {/* TEAM SECTION */}
-      {/* =================== */}
-      <motion.section 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={staggerContainer}
-        className="max-w-7xl mx-auto px-6 py-24"
-      >
-        <motion.div variants={fadeInUp} className="text-center mb-16">
-          <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: "4rem" }}
-            transition={{ duration: 0.8 }}
-            className="h-1 bg-linear-to-r from-blue-600 to-indigo-600 mx-auto mb-4"
-          />
-          <h2 className="text-4xl font-bold mb-4 bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            Meet The Experts
-          </h2>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-            Talented professionals dedicated to delivering excellence
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { name: "Elijah Emmanuel Hienwo", role: "Lead Developer", color: "#3B82F6" },
-            { name: "Stephen ", role: "UI/UX Designer", color: "#8B5CF6" },
-            { name: "Theo Awuah", role: "Project Manager", color: "#EC4899" },
-            { name: "Nana Ado", role: "Hardware Technician", color: "#10B981" }
-          ].map((member, index) => (
-            <motion.div key={member.name} variants={fadeInUp}>
-              <Card variant="elevated" accentColor={member.color}>
-                <div className="text-center group">
-                  <motion.div 
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    className="w-24 h-24 mx-auto rounded-full mb-6 overflow-hidden shadow-xl relative"
-                    style={{
-                      background: `linear-gradient(135deg, ${member.color}, ${serviceColors[(index + 1) % serviceColors.length]})`
-                    }}
-                  >
-                    {/* Placeholder for actual image */}
-                    <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">
-                      {member.name.charAt(0)}
-                    </div>
-                  </motion.div>
-                  <h3 className="font-bold text-lg mb-1">{member.name}</h3>
-                  <p className="text-sm font-medium mb-3" style={{ color: member.color }}>
-                    {member.role}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    Passionate about creating innovative solutions
+              <div className="relative z-10 flex flex-col md:flex-row items-start gap-4 md:gap-8">
+                <div className="text-blue-600 group-hover:text-blue-400 transition-colors bg-white md:bg-transparent p-3 md:p-0 rounded-lg shadow-sm md:shadow-none">
+                  {f.icon}
+                </div>
+                <div>
+                  <h4 className="text-xl md:text-2xl font-bold text-[#002147] group-hover:text-white transition-colors mb-2 md:mb-3">
+                    {f.title}
+                  </h4>
+                  <p className="text-sm md:text-base text-slate-500 group-hover:text-blue-100/80 transition-colors max-w-md leading-relaxed">
+                    {f.desc}
                   </p>
                 </div>
-              </Card>
+              </div>
+              <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
           ))}
         </div>
-      </motion.section>
-
-      {/* =================== */}
-      {/* CALL TO ACTION */}
-      {/* =================== */}
-      <motion.section 
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        className="relative bg-linear-to-br from-blue-600 via-indigo-600 to-purple-700 text-white mx-6 mb-20 py-20 rounded-3xl text-center shadow-2xl overflow-hidden"
-      >
-        {/* Animated background shapes */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 90, 0]
-            }}
-            transition={{ duration: 20, repeat: Infinity }}
-            className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/5 rounded-full blur-3xl"
-          />
-          <motion.div
-            animate={{ 
-              scale: [1.2, 1, 1.2],
-              rotate: [90, 0, 90]
-            }}
-            transition={{ duration: 20, repeat: Infinity }}
-            className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-white/5 rounded-full blur-3xl"
-          />
-        </div>
-
-        <div className="relative z-10">
-          <motion.h2 
-            initial={{ y: 20, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            className="text-4xl md:text-5xl font-bold mb-6"
-          >
-            Ready to scale your digital presence?
-          </motion.h2>
-          <motion.p 
-            initial={{ y: 20, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="mb-10 text-xl opacity-90 max-w-2xl mx-auto leading-relaxed"
-          >
-            Contact us today to discuss your ICT solutions or software needs. Let's build something amazing together.
-          </motion.p>
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Link
-              href="/contact"
-              className="inline-block bg-white text-blue-600 font-bold px-12 py-5 rounded-full shadow-xl hover:shadow-2xl hover:bg-slate-50 transition-all hover:scale-105"
-            >
-              Start a Conversation
-            </Link>
-          </motion.div>
-        </div>
-      </motion.section>
-    </main>
+      </div>
+    </section>
   );
 }

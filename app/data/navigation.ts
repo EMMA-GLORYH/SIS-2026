@@ -19,7 +19,7 @@ export const NAVIGATION = {
         {
           label: "Applications & Systems",
           description: "Desktop, web, and internal business systems",
-          href: "/services/applications",
+          href: "/services/application-development",
         },
         {
           label: "ICT Teaching",

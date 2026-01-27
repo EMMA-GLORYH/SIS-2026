@@ -10,8 +10,8 @@ export const services: Service[] = [
   },
   {
     title: "Application Development",
-    description: "Custom web and desktop applications for institutions.",
-    slug: "applications",
+    description: "Custom web, mobile, and desktop applications for institutions.",
+    slug: "application-development",
     accentColor: "#10B981", // emerald
   },
   {
