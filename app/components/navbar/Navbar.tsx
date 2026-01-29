@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Menu, X, ChevronDown, Search, ArrowRight, Home, ChevronRight, 
+  Menu, X, ChevronDown, Search, ArrowRight, Home, MessageSquare, ChevronRight, 
   Briefcase, Users, Mail, Info, Target, Workflow, 
   Award, Globe, ShieldCheck, Cpu, Zap, Lock
 } from "lucide-react";
@@ -72,11 +72,11 @@ export default function Navbar() {
           <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
             <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
             
-            {/* Ensure these both use setOpenMenu */}
             <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
             <NavTrigger label="About SIS" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
             
             <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
+            <Link href="/comments" className="hover:text-blue-400 transition-colors">Comments</Link>
             <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
@@ -229,6 +229,10 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               </SidebarSection>
 
               <SidebarLink href="/team" icon={<Users size={20} />} label="Our Team" onClick={onClose} />
+              
+              {/* Added Comments to Sidebar */}
+              <SidebarLink href="/comments" icon={<MessageSquare size={20} />} label="Comments" onClick={onClose} />
+              
               <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
             </div>
 

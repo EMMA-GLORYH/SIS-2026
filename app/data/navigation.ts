@@ -90,6 +90,7 @@ export const NAVIGATION = {
       { label: "Graphic Designing", href: "/services/graphic-design" },
       { label: "Hardware Fixing", href: "/services/hardware-fixing" },
       { label: "Technical Support", href: "/services/technical-support" },
+      { label: "Careers", href: "/team/join" },
     ],
 
     company: [

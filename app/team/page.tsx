@@ -12,7 +12,7 @@ import Link from "next/link";
 
 /**
  * INTERFACE & DATA
- * Add new members to the teamData array below.
+ * Use full URLs (https://...) for all social links to ensure they open correctly.
  */
 interface TeamMember {
   name: string;
@@ -41,12 +41,9 @@ const teamData: TeamMember[] = [
     image: "/images/team/lead.jpg",
     initials: "LA",
     socials: {
-      linkedin: "#",
-      twitter: "#",
-      github: "#",
-      facebook: "#",
-      tiktok: "#",
-      instagram: "#",
+      linkedin: "https://linkedin.com",
+      twitter: "https://x.com",
+      github: "https://github.com",
       email: "lead@sis.com"
     }
   },
@@ -57,24 +54,25 @@ const teamData: TeamMember[] = [
     bio: "Expert in Next.js and high-performance database management for scale.",
     image: "/images/team/member1.jpg",
     initials: "SC",
-    socials: {
-      linkedin: "#",
-      github: "#",
-      instagram: "#",
-      twitter: "#"
+    socials: { 
+      linkedin: "https://linkedin.com", 
+      github: "https://github.com", 
+      twitter: "https://x.com",
+      email: "sarah@sis.com"
     }
   },
   {
-    name: "Marcus Tunde",
+    name: "Stephen Amponsah",
     role: "UI/UX Strategy Lead",
     category: "Design",
     bio: "Focusing on accessibility and intuitive user journeys for complex tools.",
-    image: "/images/team/member2.jpg",
-    initials: "MT",
-    socials: {
-      linkedin: "#",
-      instagram: "#",
-      tiktok: "#"
+    image: "/images/team/stephen.jpg",
+    initials: "SA",
+    socials: { 
+      linkedin: "https://linkedin.com", 
+      instagram: "https://instagram.com", 
+      tiktok: "https://tiktok.com",
+      twitter: "https://x.com"
     }
   },
   {
@@ -84,13 +82,12 @@ const teamData: TeamMember[] = [
     bio: "Hardening system infrastructure and ensuring global compliance standards.",
     image: "/images/team/member3.jpg",
     initials: "ER",
-    socials: {
-      linkedin: "#",
-      github: "#",
+    socials: { 
+      linkedin: "https://linkedin.com", 
+      github: "https://github.com", 
       email: "elena@sis.com"
     }
   }
-  // TO ADD MORE MEMBERS: Copy one of the blocks above and paste it here.
 ];
 
 export default function TeamPage() {
@@ -108,15 +105,12 @@ export default function TeamPage() {
   return (
     <main className="min-h-screen bg-white selection:bg-blue-600 selection:text-white overflow-x-hidden scroll-smooth">
       
-      {/* --- CINEMATIC HERO SECTION --- */}
+      {/* --- HERO SECTION --- */}
       <section className="relative min-h-[60vh] flex items-center pt-32 pb-20 overflow-hidden bg-[#001529]">
         <div className="absolute inset-0 z-0">
           <Image 
             src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" 
-            alt="Team Background" 
-            fill 
-            className="object-cover opacity-20 grayscale" 
-            priority
+            alt="Team Background" fill className="object-cover opacity-20 grayscale" priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#001529] via-[#001529]/95 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
@@ -133,26 +127,20 @@ export default function TeamPage() {
             <span className="text-white/50">Our Team</span>
           </motion.nav>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter mb-6 leading-[0.85]">
               The <span className="text-blue-400">Team.</span>
             </h1>
             <p className="text-base md:text-xl text-blue-100/70 max-w-xl font-medium leading-relaxed">
-              A collective of engineers and designers building the tools of tomorrow. 
-              We turn complex problems into simple digital experiences.
+              A collective of engineers and designers building the tools of tomorrow.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* --- BALANCED FILTER BAR --- */}
+      {/* --- FILTER BAR --- */}
       <section className="relative -mt-20 z-20 pb-24 px-6">
         <div className="max-w-7xl mx-auto">
-          
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -160,8 +148,7 @@ export default function TeamPage() {
           >
             {["All Members", "Leadership", "Engineering", "Design"].map((cat) => (
               <button 
-                key={cat} 
-                onClick={() => setFilter(cat)}
+                key={cat} onClick={() => setFilter(cat)}
                 className={`w-full py-4 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border ${
                   filter === cat 
                     ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/40 scale-[1.02]" 
@@ -178,40 +165,36 @@ export default function TeamPage() {
             <AnimatePresence mode="popLayout">
               {filteredTeam.map((member) => (
                 <motion.div 
-                  layout
-                  key={member.name}
+                  layout key={member.name}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   className="group relative bg-white rounded-[2.5rem] p-4 border border-slate-100 hover:shadow-2xl transition-all duration-500"
                 >
-                  {/* Portrait Container with Vertical Socials */}
                   <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden bg-slate-900 mb-6">
                     {!imageErrors[member.name] ? (
                       <Image 
-                        src={member.image} 
-                        alt={member.name} 
-                        fill 
+                        src={member.image} alt={member.name} fill 
                         className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
                         onError={() => handleImageError(member.name)}
                       />
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-white">
+                      <div className="h-full flex flex-col items-center justify-center text-white bg-slate-800">
                         <span className="text-4xl font-black opacity-10 mb-2">SIS</span>
                         <span className="text-lg font-bold tracking-widest uppercase">{member.initials}</span>
                       </div>
                     )}
 
-                    {/* VERTICAL SOCIAL DOCK (Visible on hover) */}
+                    {/* DYNAMIC VERTICAL SOCIAL DOCK */}
                     <div className="absolute top-4 right-4 bottom-4 flex flex-col justify-center gap-2 translate-x-16 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 z-30">
-                      <SocialIcon href={member.socials.linkedin} icon={<Linkedin size={16} />} color="hover:bg-blue-600" />
-                      <SocialIcon href={member.socials.twitter} icon={<Twitter size={16} />} color="hover:bg-black" />
-                      <SocialIcon href={member.socials.github} icon={<Github size={16} />} color="hover:bg-slate-800" />
-                      <SocialIcon href={member.socials.facebook} icon={<Facebook size={16} />} color="hover:bg-blue-700" />
-                      <SocialIcon href={member.socials.instagram} icon={<Instagram size={16} />} color="hover:bg-pink-600" />
-                      <SocialIcon href={member.socials.tiktok} icon={<Video size={16} />} color="hover:bg-cyan-500" />
-                      <SocialIcon href={`mailto:${member.socials.email}`} icon={<Mail size={16} />} color="hover:bg-red-500" />
+                      <SocialIcon type="linkedin" href={member.socials.linkedin} />
+                      <SocialIcon type="twitter" href={member.socials.twitter} />
+                      <SocialIcon type="github" href={member.socials.github} />
+                      <SocialIcon type="facebook" href={member.socials.facebook} />
+                      <SocialIcon type="instagram" href={member.socials.instagram} />
+                      <SocialIcon type="tiktok" href={member.socials.tiktok} />
+                      <SocialIcon type="email" href={member.socials.email} />
                     </div>
                   </div>
 
@@ -227,24 +210,36 @@ export default function TeamPage() {
         </div>
       </section>
 
-      {/* --- TEAM STATS --- */}
-      <section className="py-24 bg-slate-50 border-y border-slate-100 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-12 text-center lg:text-left">
-          {[
-            { label: "Engineering Hours", val: "10k+", icon: Cpu },
-            { label: "Success Rate", val: "100%", icon: Star },
-            { label: "Global Clients", val: "50+", icon: Globe },
-            { label: "Fast Support", val: "24/7", icon: Zap },
-          ].map((stat, i) => (
-            <div key={i}>
-              <div className="text-blue-600 mb-4 flex justify-center lg:justify-start">
-                <stat.icon size={32} strokeWidth={1.5} />
+      {/* --- INFINITE SLIDING TEAM STATS --- */}
+      <section className="py-24 bg-slate-50 border-y border-slate-100 overflow-hidden relative">
+        <div className="flex">
+          <motion.div
+            className="flex flex-nowrap shrink-0 items-center"
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          >
+            {[...Array(2)].map((_, listIdx) => (
+              <div key={listIdx} className="flex flex-nowrap items-center">
+                {[
+                  { label: "Engineering Hours", val: "10k+", icon: Cpu },
+                  { label: "Success Rate", val: "100%", icon: Star },
+                  { label: "Global Clients", val: "50+", icon: Globe },
+                  { label: "Fast Support", val: "24/7", icon: Zap },
+                ].map((stat, i) => (
+                  <div key={`${listIdx}-${i}`} className="flex items-center gap-6 px-12 md:px-24 border-r border-slate-200">
+                    <div className="text-blue-600 shrink-0"><stat.icon size={40} strokeWidth={1.5} /></div>
+                    <div className="flex flex-col">
+                      <h4 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-none">{stat.val}</h4>
+                      <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{stat.label}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h4 className="text-3xl font-black text-slate-900 tracking-tighter mb-1">{stat.val}</h4>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-            </div>
-          ))}
+            ))}
+          </motion.div>
         </div>
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
       </section>
 
       {/* --- JOIN CTA --- */}
@@ -253,12 +248,11 @@ export default function TeamPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-transparent" />
           <div className="relative z-10">
             <h2 className="text-3xl md:text-6xl font-black text-white mb-8 tracking-tighter">Join the SIS Team.</h2>
-            <p className="text-blue-100/60 text-lg mb-10 max-w-xl mx-auto font-medium leading-relaxed">
-              We are always looking for obsessive engineers and creative thinkers 
-              to help us build simple solutions for complex problems.
-            </p>
-            <Link href="/contact" className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20">
-              Apply Now <ArrowRight size={20} />
+            <Link 
+              href="../../team/join" 
+              className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20 group">
+              Apply Now 
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -268,24 +262,35 @@ export default function TeamPage() {
 }
 
 /**
- * HELPER COMPONENT: SocialIcon
- * Renders a stylized link button only if a valid href is provided.
+ * SMART SOCIAL ICON COMPONENT
+ * Handles brand colors, hover states, and link protocols.
  */
-function SocialIcon({ href, icon, color }: { href?: string, icon: React.ReactNode, color: string }) {
-  if (!href || href === "#") {
-    // Note: You can change the condition above to allow "#" if you want to test the look
-    // of the icons before you have the actual URLs.
-    if (href !== "#") return null; 
-  }
-  
+function SocialIcon({ type, href }: { type: string, href?: string }) {
+  if (!href || href === "" || href === "#") return null;
+
+  const config: Record<string, { icon: React.ReactNode, color: string, link: string }> = {
+    linkedin: { icon: <Linkedin size={16} />, color: "hover:bg-[#0077b5]", link: href },
+    twitter: { icon: <Twitter size={16} />, color: "hover:bg-black", link: href },
+    github: { icon: <Github size={16} />, color: "hover:bg-[#333]", link: href },
+    facebook: { icon: <Facebook size={16} />, color: "hover:bg-[#1877f2]", link: href },
+    instagram: { icon: <Instagram size={16} />, color: "hover:bg-[#e4405f]", link: href },
+    tiktok: { icon: <Video size={16} />, color: "hover:bg-[#ff0050]", link: href },
+    email: { icon: <Mail size={16} />, color: "hover:bg-[#ea4335]", link: href.startsWith('mailto:') ? href : `mailto:${href}` },
+  };
+
+  const item = config[type];
+  if (!item) return null;
+
   return (
-    <a 
-      href={href} 
+    <motion.a 
+      whileHover={{ scale: 1.15, x: -5 }}
+      whileTap={{ scale: 0.95 }}
+      href={item.link} 
       target="_blank" 
       rel="noopener noreferrer"
-      className={`w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white transition-all duration-300 ${color} hover:scale-110 shadow-lg`}
+      className={`w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white transition-all duration-300 ${item.color} shadow-lg shadow-black/20`}
     >
-      {icon}
-    </a>
+      {item.icon}
+    </motion.a>
   );
 }

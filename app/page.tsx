@@ -9,7 +9,9 @@ import {
   ShieldCheck, 
   Globe, 
   Zap, 
-  Cpu 
+  Cpu,
+  Quote, 
+  Star as StarIcon 
 } from "lucide-react";
 import Link from "next/link";
 
@@ -36,12 +38,13 @@ export default function HomePage() {
       <HeroSlider />
       <TechStackStrip />
       <InstitutionalServices />
+      <Testimonials />
     </main>
   );
 }
 
 /* ===================== */
-/* 1. CINEMATIC HERO (Responsive Type) */
+/* 1. CINEMATIC HERO     */
 /* ===================== */
 function HeroSlider() {
   const [index, setIndex] = useState(0);
@@ -83,7 +86,6 @@ function HeroSlider() {
             </span>
           </motion.div>
           
-          {/* RESPONSIVE TYPOGRAPHY: Scales from 3.5xl on mobile to 8xl on desktop */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,11 +115,9 @@ function HeroSlider() {
               Consult an Expert <ArrowRight size={18} />
             </motion.button>
           </Link>
-
         </div>
       </div>
 
-      {/* Manual Navigation (Arrows) - Hidden on very small screens for cleaner UI */}
       <div className="absolute inset-x-4 md:inset-x-8 top-1/2 z-30 hidden sm:flex -translate-y-1/2 justify-between pointer-events-none">
         <button onClick={prev} className="pointer-events-auto p-3 md:p-4 rounded-full border border-white/10 text-white hover:bg-white hover:text-[#002147] transition-all backdrop-blur-md">
           <ChevronLeft size={24} />
@@ -127,7 +127,6 @@ function HeroSlider() {
         </button>
       </div>
 
-      {/* Pagination Dots (Responsive spacing) */}
       <div className="absolute bottom-6 md:bottom-10 left-1/2 z-30 flex -translate-x-1/2 gap-2 md:gap-4">
         {HERO_IMAGES.map((_, i) => (
           <button
@@ -142,13 +141,13 @@ function HeroSlider() {
 }
 
 /* ===================== */
-/* 2. INFINITE TECH STRIP (Responsive Gaps) */
+/* 2. TECH STRIP         */
 /* ===================== */
 function TechStackStrip() {
   return (
     <div className="py-10 md:py-16 border-b border-slate-100 bg-white overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 mb-6 md:mb-10">
-        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-slate-400 text-center">
+        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 text-center">
           Our Industrial Tech Stack
         </p>
       </div>
@@ -172,7 +171,7 @@ function TechStackStrip() {
 }
 
 /* ===================== */
-/* 3. ASYMMETRIC SERVICES FLOW (Responsive Grid) */
+/* 3. INSTITUTIONAL SERVICES */
 /* ===================== */
 function InstitutionalServices() {
   const features = [
@@ -185,7 +184,6 @@ function InstitutionalServices() {
   return (
     <section className="py-16 md:py-32 max-w-7xl mx-auto px-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-start">
-        {/* Sticky Left Column: Responsive Heading */}
         <div className="lg:col-span-5 lg:sticky lg:top-32">
           <h2 className="text-blue-600 text-[10px] md:text-xs font-black uppercase tracking-[0.5em] mb-4 md:mb-6">Capabilities</h2>
           <h3 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#002147] tracking-tighter leading-[1] mb-6 md:mb-10">
@@ -202,7 +200,6 @@ function InstitutionalServices() {
           </Link>
         </div>
 
-        {/* Right Column: Stacked Service Cards */}
         <div className="lg:col-span-7 space-y-3 md:space-y-4">
           {features.map((f, i) => (
             <motion.div 
@@ -229,6 +226,74 @@ function InstitutionalServices() {
               <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ===================== */
+/* 4. TESTIMONIALS       */
+/* ===================== */
+/* ===================== */
+/* 4. TESTIMONIALS       */
+/* ===================== */
+function Testimonials() {
+  const reviews = [
+    { name: "Principal, St. Andrews", text: "The school portal reduced our admin workload by 60%. Essential for modern education.", rating: 5 },
+    { name: "NGO Director", text: "Secure, reliable, and highly professional. The team at SIS understands institutional needs.", rating: 5 }
+  ];
+
+  return (
+    <section className="py-24 bg-slate-50 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em] mb-4">Testimonials</h2>
+          <h3 className="text-4xl font-black text-[#002147] tracking-tight">Voices of Success.</h3>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          {reviews.map((r, i) => (
+            <motion.div 
+              key={i}
+              whileHover={{ y: -5 }}
+              className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 relative"
+            >
+              <Quote className="absolute top-8 right-10 text-slate-100" size={60} />
+              <div className="flex gap-1 mb-6">
+                {[...Array(r.rating)].map((_, i) => (
+                  <StarIcon key={i} size={14} className="fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8 relative z-10 italic">
+                "{r.text}"
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {r.name[0]}
+                </div>
+                <span className="font-black text-[#002147] text-sm uppercase tracking-wider">{r.name}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* --- NEW NAVIGATION BUTTON --- */}
+        <div className="flex flex-col items-center justify-center space-y-6">
+          <div className="h-px w-24 bg-slate-200" />
+          <Link href="/comments">
+            <motion.button
+              whileHover={{ scale: 1.05, gap: "1.5rem" }}
+              whileTap={{ scale: 0.95 }}
+              className="group flex items-center gap-4 bg-white border-2 border-[#002147] text-[#002147] px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-[#002147] hover:text-white transition-all duration-300"
+            >
+              Share Your Experience
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+          </Link>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Help us improve our institutional services
+          </p>
         </div>
       </div>
     </section>
