@@ -1,117 +1,186 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Menu, 
-  X, 
-  ChevronRight, 
-  Home, 
-  Briefcase, 
-  Users, 
-  Mail,
-  Info
+  Menu, X, ChevronDown, Search, ArrowRight, Home, ChevronRight, 
+  Briefcase, Users, Mail, Info, Target, Workflow, 
+  Award, Globe, ShieldCheck, Cpu, Zap, Lock
 } from "lucide-react";
+
+/* ===================== */
+/* DATA CONFIGURATION    */
+/* ===================== */
+
+const NAVIGATION_DATA = {
+  services: {
+    title: "Our Services",
+    tagline: "Simple, powerful digital tools built for schools and businesses.",
+    items: [
+      { title: "Web & Portals", desc: "Easy-to-use school & business sites", href: "/services/website-development", icon: Globe },
+      { title: "Custom Software", desc: "Apps built for your specific needs", href: "/services/application-development", icon: Cpu },
+      { title: "Graphic Design", desc: "Logo, branding & professional media", href: "/services/graphic-design", icon: Target },
+      { title: "ICT Teaching", desc: "Training for students & staff", href: "/services/ict-teaching", icon: Award },
+      { title: "Hardware Fixes", desc: "Maintenance & computer repairs", href: "/services/hardware-fixing", icon: Workflow },
+      { title: "Technical Support", desc: "24/7 help for your IT systems", href: "/services/ict-support", icon: ShieldCheck },
+    ]
+  },
+  about: {
+    title: "Who We Are",
+    tagline: "Making complex technology easy since 2023.",
+    items: [
+      { title: "Our Identity", desc: "What we believe in", href: "/about#identity", icon: Target },
+      { title: "How We Work", desc: "Our simple 3-step process", href: "/about#methodology", icon: Workflow },
+      { title: "Who We Serve", desc: "Institutions we empower", href: "/about#portfolio", icon: Briefcase },
+      { title: "Safety Rules", desc: "How we protect your data", href: "/about#standards", icon: Lock },
+    ]
+  }
+};
 
 export default function Navbar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => { setOpenMenu(null); setIsSearchOpen(false); };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      <header
-        className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm"
+      <header 
+        className="sticky top-0 z-[100] bg-[#002147] text-white border-b border-white/10 shadow-xl"
         onMouseLeave={() => setOpenMenu(null)}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-          {/* BRAND */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <motion.div 
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.6 }}
-              className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold tracking-wide shadow-lg"
-            >
+          
+          {/* LOGO */}
+          <Link href="/" className="flex items-center gap-4 group">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-lg md:text-xl shadow-lg transition-transform group-hover:rotate-12">
               SIS
-            </motion.div>
-            <span className="hidden sm:inline text-lg font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-              Solutions & ICT Services
-            </span>
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-sm md:text-base font-black tracking-tight leading-none uppercase">Solutions & ICT</span>
+              <span className="text-[9px] font-bold text-blue-300 tracking-[0.2em] uppercase">Services Limited</span>
+            </div>
           </Link>
 
           {/* DESKTOP NAV */}
-          <nav className="hidden lg:flex items-center gap-8 text-base font-medium text-slate-700">
-            <Link href="/" className="hover:text-blue-600 transition-colors flex items-center gap-2">
-              <Home size={18} />
-              Home
-            </Link>
-
-            <NavHover
-              label="Services"
-              href="/services"
-              icon={<Briefcase size={18} />}
-              onHover={() => setOpenMenu("services")}
-            />
-
-            <NavHover
-              label="About"
-              href="/about"
-              icon={<Info size={18} />}
-              onHover={() => setOpenMenu("about")}
-            />
-
-            <Link href="/team" className="hover:text-blue-600 transition-colors flex items-center gap-2">
-              <Users size={18} />
-              Our Team
-            </Link>
-
-            <NavHover
-              label="Contact"
-              href="/contact"
-              icon={<Mail size={18} />}
-              onHover={() => setOpenMenu("contact")}
-            />
+          <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
+            <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
+            
+            {/* Ensure these both use setOpenMenu */}
+            <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
+            <NavTrigger label="About SIS" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
+            
+            <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
+            <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
-          {/* SIDEBAR TOGGLE BUTTON (Desktop & Mobile) */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSidebarOpen(true)}
-            className="flex items-center gap-2 bg-linear-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
-          >
-            <Menu size={20} />
-            <span className="hidden sm:inline">Menu</span>
-          </motion.button>
+          {/* ACTIONS */}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="p-2.5 hover:bg-white/10 rounded-full transition-all">
+              <Search size={20} className={isSearchOpen ? "text-blue-400" : "text-white"} />
+            </button>
+            <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
+              <Menu size={18} />
+              <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
+            </button>
+          </div>
         </div>
 
-        {/* DESKTOP DROPDOWN */}
+        {/* MEGA MENU */}
         <AnimatePresence>
-          {openMenu && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="hidden lg:block absolute left-0 w-full bg-white border-b border-slate-200 shadow-lg"
-            >
-              <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-                {openMenu === "services" && <ServicesMenu />}
-                {openMenu === "about" && <AboutMenu />}
-                {openMenu === "contact" && <ContactMenu />}
-              </div>
-            </motion.div>
+          {openMenu && (NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]) && (
+            <MegaMenuContent 
+              data={NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]} 
+              onClose={() => setOpenMenu(null)} 
+            />
           )}
         </AnimatePresence>
       </header>
 
-      {/* SIDEBAR DRAWER */}
+      {/* SEARCH BAR */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="bg-white overflow-hidden border-b border-slate-200">
+             <div className="max-w-4xl mx-auto px-6 py-12">
+               <input 
+                type="text" 
+                placeholder="How can we help you today?" 
+                className="w-full h-16 px-8 rounded-full border-2 border-slate-100 focus:border-blue-600 outline-none text-slate-900 text-xl font-medium shadow-inner"
+               />
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );
 }
 
 /* ===================== */
-/* SIDEBAR DRAWER */
+/* SUB-COMPONENTS        */
+/* ===================== */
+
+function NavTrigger({ label, id, activeMenu, setMenu }: any) {
+  return (
+    <div onMouseEnter={() => setMenu(id)} className="relative py-2 cursor-pointer">
+      <div className={`flex items-center gap-1 transition-colors ${activeMenu === id ? "text-blue-400" : ""}`}>
+        {label} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === id ? "rotate-180" : ""}`} />
+      </div>
+      <motion.div 
+        animate={{ width: activeMenu === id ? "100%" : "0%" }}
+        className="absolute -bottom-1 left-0 h-0.5 bg-blue-400"
+      />
+    </div>
+  );
+}
+
+function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -10 }}
+      className="hidden lg:block absolute left-0 w-full bg-white text-slate-900 shadow-2xl border-b border-slate-200"
+    >
+      <div className="max-w-7xl mx-auto flex min-h-[400px]">
+        <div className="w-1/3 bg-slate-50 p-12 border-r border-slate-100 flex flex-col justify-between">
+          <div>
+            <div className="w-14 h-14 bg-[#002147] rounded-xl flex items-center justify-center text-white font-black text-xl mb-6">SIS</div>
+            <h2 className="text-2xl font-black text-[#002147] uppercase tracking-tighter mb-4">{data.title}</h2>
+            <p className="text-slate-500 leading-relaxed text-sm font-medium">{data.tagline}</p>
+          </div>
+          <Link href="/services/service-request" onClick={onClose} className="group flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]">
+            Start Your Project <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="w-2/3 p-12 grid grid-cols-2 gap-x-12 gap-y-10">
+          {data.items.map((item: any, idx: number) => (
+            <Link key={idx} href={item.href} onClick={onClose} className="group flex items-start gap-4">
+              <div className="p-3 bg-slate-100 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all text-blue-600">
+                <item.icon size={24} />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#002147] group-hover:text-blue-600 transition-colors mb-1">{item.title}</h4>
+                <p className="text-[11px] text-slate-500 font-medium leading-normal">{item.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ===================== */
+/* SIDEBAR DRAWER        */
 /* ===================== */
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -121,99 +190,52 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-[#002147]/60 backdrop-blur-sm z-[200]" />
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-          />
-
-          {/* Drawer */}
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-96 bg-linear-to-br from-slate-50 to-white shadow-2xl z-50 overflow-y-auto"
+            className="fixed right-0 top-0 h-full w-full sm:w-[380px] bg-white shadow-2xl z-[201] overflow-y-auto"
           >
-            {/* Header */}
-            <div className="sticky top-0 bg-linear-to-r from-blue-600 to-indigo-700 text-white p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-xl shadow-lg"
-                >
-                  SIS
-                </motion.div>
-                <motion.button
-                  whileHover={{ rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={onClose}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <X size={24} />
-                </motion.button>
+            <div className="bg-[#002147] text-white p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">SIS</div>
+                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><X size={24} /></button>
               </div>
-              <h2 className="text-xl font-bold">Navigation Menu</h2>
-              <p className="text-blue-100 text-sm mt-1">Explore our services</p>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Menu</h2>
+              <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-2">Simple Technology. Powerful Results.</p>
             </div>
 
-            {/* Navigation Links */}
             <div className="p-6 space-y-2">
               <SidebarLink href="/" icon={<Home size={20} />} label="Home" onClick={onClose} />
               
               <SidebarSection
-                icon={<Briefcase size={20} />}
-                label="Services"
+                icon={<Briefcase size={20} />} label="Our Services"
                 expanded={expandedSection === "services"}
                 onToggle={() => setExpandedSection(expandedSection === "services" ? null : "services")}
               >
-                <SidebarSubLink href="/services/website-development" label="Website Development" onClick={onClose} />
-                <SidebarSubLink href="/services/application-development" label="Application Development" onClick={onClose} />
-                <SidebarSubLink href="/services/graphic-design" label="Graphic Design" onClick={onClose} />
-                <SidebarSubLink href="/services/ict-teaching" label="ICT Teaching" onClick={onClose} />
-                <SidebarSubLink href="/services/hardware-fixing" label="Hardware Fixing" onClick={onClose} />
-                <SidebarSubLink href="/services/ict-support" label="ICT Support" onClick={onClose} />
+                {NAVIGATION_DATA.services.items.map((item, i) => (
+                  <SidebarSubLink key={i} href={item.href} label={item.title} onClick={onClose} />
+                ))}
               </SidebarSection>
 
               <SidebarSection
-                icon={<Info size={20} />}
-                label="About Us"
+                icon={<Info size={20} />} label="About SIS"
                 expanded={expandedSection === "about"}
                 onToggle={() => setExpandedSection(expandedSection === "about" ? null : "about")}
               >
-                <SidebarSubLink href="/about/who-we-are" label="Who We Are" onClick={onClose} />
-                <SidebarSubLink href="/about/our-approach" label="Our Approach" onClick={onClose} />
-                <SidebarSubLink href="/about/who-we-serve" label="Who We Serve" onClick={onClose} />
+                {NAVIGATION_DATA.about.items.map((item, i) => (
+                  <SidebarSubLink key={i} href={item.href} label={item.title} onClick={onClose} />
+                ))}
               </SidebarSection>
 
               <SidebarLink href="/team" icon={<Users size={20} />} label="Our Team" onClick={onClose} />
-
-              <SidebarSection
-                icon={<Mail size={20} />}
-                label="Contact"
-                expanded={expandedSection === "contact"}
-                onToggle={() => setExpandedSection(expandedSection === "contact" ? null : "contact")}
-              >
-                <SidebarSubLink href="/contact/request-service" label="Request a Service" onClick={onClose} />
-                <SidebarSubLink href="/contact/whatsapp" label="WhatsApp" onClick={onClose} />
-                <SidebarSubLink href="/contact" label="Email & Phone" onClick={onClose} />
-              </SidebarSection>
+              <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
             </div>
 
-            {/* Footer */}
-            <div className="mt-auto p-6 border-t border-slate-200 bg-slate-100">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto rounded-full bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg mb-3">
-                  SIS
-                </div>
-                <p className="text-sm font-semibold text-slate-900">Solutions & ICT Services</p>
-                <p className="text-xs text-slate-600 mt-1">Empowering through Technology</p>
-              </div>
+            <div className="mt-8 p-8 border-t border-slate-100 bg-slate-50 text-center">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-loose">
+                Architecting Institutional Efficiency
+              </p>
             </div>
           </motion.div>
         </>
@@ -222,84 +244,28 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   );
 }
 
-/* ===================== */
-/* SIDEBAR COMPONENTS */
-/* ===================== */
-
-function SidebarLink({ 
-  href, 
-  icon, 
-  label, 
-  onClick 
-}: { 
-  href: string; 
-  icon: React.ReactNode; 
-  label: string; 
-  onClick: () => void;
-}) {
+function SidebarLink({ href, icon, label, onClick }: any) {
   return (
-    <Link href={href} onClick={onClick}>
-      <motion.div
-        whileHover={{ x: 4 }}
-        className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 transition-colors group"
-      >
-        <div className="text-blue-600 group-hover:text-blue-700">
-          {icon}
-        </div>
-        <span className="font-medium text-slate-900 group-hover:text-blue-700">
-          {label}
-        </span>
-      </motion.div>
+    <Link href={href} onClick={onClick} className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group">
+      <span className="text-blue-600">{icon}</span>
+      <span className="font-bold text-slate-800 uppercase text-[11px] tracking-wider group-hover:text-blue-600">{label}</span>
     </Link>
   );
 }
 
-function SidebarSection({
-  icon,
-  label,
-  expanded,
-  onToggle,
-  children
-}: {
-  icon: React.ReactNode;
-  label: string;
-  expanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}) {
+function SidebarSection({ icon, label, expanded, onToggle, children }: any) {
   return (
     <div>
-      <motion.button
-        whileHover={{ x: 4 }}
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 transition-colors group"
-      >
-        <div className="flex items-center gap-3">
-          <div className="text-blue-600 group-hover:text-blue-700">
-            {icon}
-          </div>
-          <span className="font-medium text-slate-900 group-hover:text-blue-700">
-            {label}
-          </span>
+      <button onClick={onToggle} className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors group text-left">
+        <div className="flex items-center gap-4">
+          <span className="text-blue-600">{icon}</span>
+          <span className="font-bold text-slate-800 uppercase text-[11px] tracking-wider group-hover:text-blue-600">{label}</span>
         </div>
-        <motion.div
-          animate={{ rotate: expanded ? 90 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="text-slate-400 group-hover:text-blue-600"
-        >
-          <ChevronRight size={18} />
-        </motion.div>
-      </motion.button>
-
+        <ChevronRight size={18} className={`transition-transform text-slate-400 ${expanded ? "rotate-90" : ""}`} />
+      </button>
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="ml-4 mt-1 space-y-1 overflow-hidden border-l-2 border-blue-200"
-          >
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pl-12 space-y-2 mt-2 border-l-2 border-blue-100 ml-6 overflow-hidden">
             {children}
           </motion.div>
         )}
@@ -308,204 +274,10 @@ function SidebarSection({
   );
 }
 
-function SidebarSubLink({ 
-  href, 
-  label, 
-  onClick 
-}: { 
-  href: string; 
-  label: string; 
-  onClick: () => void;
-}) {
+function SidebarSubLink({ href, label, onClick }: any) {
   return (
-    <Link href={href} onClick={onClick}>
-      <motion.div
-        whileHover={{ x: 4 }}
-        className="pl-4 py-2 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded transition-colors"
-      >
-        {label}
-      </motion.div>
-    </Link>
-  );
-}
-
-/* ===================== */
-/* NAV HOVER ITEM */
-/* ===================== */
-
-function NavHover({
-  label,
-  href,
-  icon,
-  onHover,
-}: {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-  onHover: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onMouseEnter={onHover}
-      className="hover:text-blue-600 transition-colors flex items-center gap-2"
-    >
-      {icon}
+    <Link href={href} onClick={onClick} className="block py-2 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
       {label}
-    </Link>
-  );
-}
-
-/* ===================== */
-/* DROPDOWNS */
-/* ===================== */
-
-function ServicesMenu() {
-  return (
-    <DropdownGrid>
-      <DropdownCard
-        title="Website Development"
-        description="Modern websites and portals for schools and institutions."
-        href="/services/website-development"
-        color="from-blue-500 to-cyan-500"
-      />
-      <DropdownCard
-        title="Application Development"
-        description="Custom web and desktop systems built to scale."
-        href="/services/application-development"
-        color="from-indigo-500 to-purple-500"
-      />
-      <DropdownCard
-        title="Graphic Design"
-        description="Branding, posters, flyers, and digital creatives."
-        href="/services/graphic-design"
-        color="from-pink-500 to-rose-500"
-      />
-      <DropdownCard
-        title="ICT Teaching"
-        description="Hands-on ICT teaching and project supervision."
-        href="/services/ict-teaching"
-        color="from-emerald-500 to-teal-500"
-      />
-      <DropdownCard
-        title="Hardware Fixing"
-        description="Repairs for mobile phones and laptops."
-        href="/services/hardware-fixing"
-        color="from-orange-500 to-amber-500"
-      />
-      <DropdownCard
-        title="ICT Support"
-        description="System maintenance and technical support."
-        href="/services/ict-support"
-        color="from-violet-500 to-fuchsia-500"
-      />
-    </DropdownGrid>
-  );
-}
-
-function AboutMenu() {
-  return (
-    <DropdownGrid>
-      <DropdownCard
-        title="Who We Are"
-        description="Education-driven ICT professionals."
-        href="/about/who-we-are"
-        color="from-blue-500 to-indigo-500"
-      />
-      <DropdownCard
-        title="Our Approach"
-        description="Simple, secure, and sustainable solutions."
-        href="/about/our-approach"
-        color="from-teal-500 to-emerald-500"
-      />
-      <DropdownCard
-        title="Who We Serve"
-        description="Schools, NGOs, and institutions."
-        href="/about/who-we-serve"
-        color="from-purple-500 to-pink-500"
-      />
-    </DropdownGrid>
-  );
-}
-
-function ContactMenu() {
-  return (
-    <DropdownGrid>
-      <DropdownCard
-        title="Request a Service"
-        description="Start a conversation about your project."
-        href="/contact/request-service"
-        color="from-blue-500 to-cyan-500"
-      />
-      <DropdownCard
-        title="WhatsApp"
-        description="Fast enquiries and quick responses."
-        href="/contact/whatsapp"
-        color="from-green-500 to-emerald-500"
-      />
-      <DropdownCard
-        title="Email & Phone"
-        description="Official institutional contact channels."
-        href="/contact"
-        color="from-indigo-500 to-purple-500"
-      />
-    </DropdownGrid>
-  );
-}
-
-/* ===================== */
-/* UI HELPERS */
-/* ===================== */
-
-function DropdownGrid({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {children}
-    </div>
-  );
-}
-
-function DropdownCard({
-  title,
-  description,
-  href,
-  color
-}: {
-  title: string;
-  description: string;
-  href: string;
-  color: string;
-}) {
-  return (
-    <Link href={href}>
-      <motion.div
-        whileHover={{ y: -4, scale: 1.02 }}
-        className="group relative rounded-xl p-5 bg-white hover:shadow-xl transition-all duration-300 border border-slate-200 overflow-hidden"
-      >
-        {/* Gradient accent bar */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-linear-to-r ${color}`} />
-        
-        {/* Hover gradient overlay */}
-        <div className={`absolute inset-0 bg-linear-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-        
-        <div className="relative z-10">
-          <h3 className="font-bold text-slate-900 mb-2 text-base group-hover:text-blue-700 transition-colors">
-            {title}
-          </h3>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {description}
-          </p>
-        </div>
-
-        {/* Arrow icon */}
-        <motion.div
-          initial={{ x: -5, opacity: 0 }}
-          whileHover={{ x: 0, opacity: 1 }}
-          className="absolute bottom-4 right-4 text-blue-600"
-        >
-          <ChevronRight size={18} />
-        </motion.div>
-      </motion.div>
     </Link>
   );
 }
