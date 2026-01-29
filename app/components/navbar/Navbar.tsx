@@ -4,294 +4,183 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Menu, 
-  X, 
-  ChevronRight, 
-  Home, 
-  Briefcase, 
-  Users, 
-  Mail,
-  Info,
-  Search,
-  ArrowRight
+  Menu, X, ChevronDown, Search, ArrowRight, Home, ChevronRight, 
+  Briefcase, Users, Mail, Info, Target, Workflow, 
+  Award, Globe, ShieldCheck, Cpu, Zap, Lock
 } from "lucide-react";
+
+/* ===================== */
+/* DATA CONFIGURATION    */
+/* ===================== */
+
+const NAVIGATION_DATA = {
+  services: {
+    title: "Our Services",
+    tagline: "Simple, powerful digital tools built for schools and businesses.",
+    items: [
+      { title: "Web & Portals", desc: "Easy-to-use school & business sites", href: "/services/website-development", icon: Globe },
+      { title: "Custom Software", desc: "Apps built for your specific needs", href: "/services/application-development", icon: Cpu },
+      { title: "Graphic Design", desc: "Logo, branding & professional media", href: "/services/graphic-design", icon: Target },
+      { title: "ICT Teaching", desc: "Training for students & staff", href: "/services/ict-teaching", icon: Award },
+      { title: "Hardware Fixes", desc: "Maintenance & computer repairs", href: "/services/hardware-fixing", icon: Workflow },
+      { title: "Technical Support", desc: "24/7 help for your IT systems", href: "/services/ict-support", icon: ShieldCheck },
+    ]
+  },
+  about: {
+    title: "Who We Are",
+    tagline: "Making complex technology easy since 2023.",
+    items: [
+      { title: "Our Identity", desc: "What we believe in", href: "/about#identity", icon: Target },
+      { title: "How We Work", desc: "Our simple 3-step process", href: "/about#methodology", icon: Workflow },
+      { title: "Who We Serve", desc: "Institutions we empower", href: "/about#portfolio", icon: Briefcase },
+      { title: "Safety Rules", desc: "How we protect your data", href: "/about#standards", icon: Lock },
+    ]
+  }
+};
 
 export default function Navbar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  // Close menus on scroll for a smoother experience
   useEffect(() => {
-    const handleScroll = () => {
-      setOpenMenu(null);
-      setIsSearchOpen(false);
-    };
+    const handleScroll = () => { setOpenMenu(null); setIsSearchOpen(false); };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <>
-      <header
+      <header 
         className="sticky top-0 z-[100] bg-[#002147] text-white border-b border-white/10 shadow-xl"
         onMouseLeave={() => setOpenMenu(null)}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           
-          {/* BRAND (Logo on the Left) */}
+          {/* LOGO */}
           <Link href="/" className="flex items-center gap-4 group">
-            <motion.div 
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.6 }}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-lg md:text-xl shadow-lg"
-            >
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-lg md:text-xl shadow-lg transition-transform group-hover:rotate-12">
               SIS
-            </motion.div>
+            </div>
             <div className="hidden sm:flex flex-col">
-              <span className="text-base md:text-lg font-black tracking-tight leading-none uppercase">
-                Solutions & ICT
-              </span>
-              <span className="text-[9px] md:text-[10px] font-bold text-blue-300 tracking-[0.2em] uppercase">
-                Services Limited
-              </span>
+              <span className="text-sm md:text-base font-black tracking-tight leading-none uppercase">Solutions & ICT</span>
+              <span className="text-[9px] font-bold text-blue-300 tracking-[0.2em] uppercase">Services Limited</span>
             </div>
           </Link>
 
-          {/* DESKTOP NAV (Right Aligned) */}
+          {/* DESKTOP NAV */}
           <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
-            <Link href="/" className="hover:text-blue-400 transition-colors">
-              Home
-            </Link>
-
-            <NavHover
-              label="Services"
-              href="/services"
-              onHover={() => setOpenMenu("services")}
-              isActive={openMenu === "services"}
-            />
-
-            <NavHover
-              label="About Us"
-              href="/about"
-              onHover={() => setOpenMenu("about")}
-              isActive={openMenu === "about"}
-            />
-
-            <Link href="/team" className="hover:text-blue-400 transition-colors">
-              Our Team
-            </Link>
-
-            <NavHover
-              label="Media & Contact"
-              href="/contact"
-              onHover={() => setOpenMenu("contact")}
-              isActive={openMenu === "contact"}
-            />
+            <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
+            
+            {/* Ensure these both use setOpenMenu */}
+            <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
+            <NavTrigger label="About SIS" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
+            
+            <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
+            <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
-          {/* ACTION BUTTONS */}
-          <div className="flex items-center gap-2 md:gap-3">
-            <button 
-              onClick={() => {
-                setIsSearchOpen(!isSearchOpen);
-                setOpenMenu(null);
-              }}
-              className="p-2.5 hover:bg-white/10 rounded-full transition-colors relative group"
-              aria-label="Search"
-            >
+          {/* ACTIONS */}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="p-2.5 hover:bg-white/10 rounded-full transition-all">
               <Search size={20} className={isSearchOpen ? "text-blue-400" : "text-white"} />
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
-
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSidebarOpen(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full font-bold shadow-lg transition-all"
-            >
+            <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
               <Menu size={18} />
-              <span className="hidden sm:inline text-[10px] md:text-xs uppercase tracking-tighter">Menu</span>
-            </motion.button>
+              <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
+            </button>
           </div>
         </div>
 
-        {/* CLEAN INSTITUTIONAL SEARCH BAR */}
+        {/* MEGA MENU */}
         <AnimatePresence>
-          {isSearchOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="bg-white border-b border-slate-200 overflow-hidden shadow-2xl"
-            >
-              <div className="max-w-5xl mx-auto px-6 py-8">
-                <div className="relative flex items-center">
-                   <div className="absolute left-6 text-slate-400">
-                      <Search size={24} />
-                   </div>
-                   <input 
-                    autoFocus
-                    type="text"
-                    placeholder="Search for Services, Technical Staff, or Support News..."
-                    className="w-full h-14 md:h-16 pl-16 pr-6 rounded-full border-2 border-slate-200 focus:border-blue-600 outline-none text-slate-800 text-base md:text-lg font-medium transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                   />
-                </div>
-                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  <span className="text-slate-500">Popular:</span>
-                  <Link href="/services/website-development" className="hover:text-blue-600">Web Development</Link>
-                  <span>•</span>
-                  <Link href="/services/ict-support" className="hover:text-blue-600">ICT Support</Link>
-                  <span>•</span>
-                  <Link href="/services/application-development" className="hover:text-blue-600">School Portals</Link>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* INSTITUTIONAL DROPDOWN (KNUST Layout Style) */}
-        <AnimatePresence>
-          {openMenu && (
-            <motion.div 
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="hidden lg:block absolute left-0 w-full bg-white text-slate-900 border-b border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
-            >
-              <div className="max-w-7xl mx-auto flex min-h-[380px]">
-                {/* Left Side: Institutional Branding */}
-                <div className="w-1/3 bg-slate-50 p-10 flex flex-col justify-between border-r border-slate-100">
-                  <div>
-                    <div className="w-16 h-16 bg-[#002147] rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl mb-6">
-                      SIS
-                    </div>
-                    <h2 className="text-xl font-black tracking-tighter text-[#002147] mb-4 uppercase">
-                      {openMenu === "services" && "Professional Services"}
-                      {openMenu === "about" && "Institutional Profile"}
-                      {openMenu === "contact" && "Get in Touch"}
-                    </h2>
-                    <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
-                      Providing enterprise-grade ICT solutions designed to power modern educational and corporate infrastructures.
-                    </p>
-                  </div>
-                  <Link 
-                    href={`/${openMenu}`} 
-                    className="group flex items-center gap-2 text-[#002147] font-black text-[10px] uppercase tracking-[0.2em] hover:text-blue-600 transition-colors"
-                  >
-                    Explore Full Section <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
-                  </Link>
-                </div>
-
-                {/* Right Side: Navigation Grid */}
-                <div className="w-2/3 p-10">
-                  {openMenu === "services" && <ServicesMenu />}
-                  {openMenu === "about" && <AboutMenu />}
-                  {openMenu === "contact" && <ContactMenu />}
-                </div>
-              </div>
-            </motion.div>
+          {openMenu && (NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]) && (
+            <MegaMenuContent 
+              data={NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]} 
+              onClose={() => setOpenMenu(null)} 
+            />
           )}
         </AnimatePresence>
       </header>
 
-      {/* SIDEBAR DRAWER */}
+      {/* SEARCH BAR */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="bg-white overflow-hidden border-b border-slate-200">
+             <div className="max-w-4xl mx-auto px-6 py-12">
+               <input 
+                type="text" 
+                placeholder="How can we help you today?" 
+                className="w-full h-16 px-8 rounded-full border-2 border-slate-100 focus:border-blue-600 outline-none text-slate-900 text-xl font-medium shadow-inner"
+               />
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );
 }
 
 /* ===================== */
-/* MENU COMPONENTS */
+/* SUB-COMPONENTS        */
 /* ===================== */
 
-function ServicesMenu() {
-  const items = [
-    { title: "Website Development", desc: "Institutional Portals & CMS", href: "/services/website-development" },
-    { title: "App Development", desc: "Enterprise Web & Desktop Apps", href: "/services/application-development" },
-    { title: "Graphic Design", desc: "Corporate Branding & Media", href: "/services/graphic-design" },
-    { title: "ICT Teaching", desc: "Institutional Training Programs", href: "/services/ict-teaching" },
-    { title: "Hardware Services", desc: "Fleet Maintenance & Repairs", href: "/services/hardware-fixing" },
-    { title: "System Support", desc: "Managed ICT Support Services", href: "/services/ict-support" },
-  ];
-
+function NavTrigger({ label, id, activeMenu, setMenu }: any) {
   return (
-    <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-      {items.map((item, idx) => (
-        <DropdownLink key={idx} {...item} />
-      ))}
-    </div>
-  );
-}
-
-function AboutMenu() {
-  const items = [
-    { title: "Corporate Identity", desc: "Vision, Mission & Values", href: "/about/who-we-are" },
-    { title: "Our Methodology", desc: "The SIS Project Lifecycle", href: "/about/our-approach" },
-    { title: "Client Portfolio", desc: "Institutions We Empower", href: "/about/who-we-serve" },
-    { title: "Quality Standards", desc: "Technical Certifications", href: "/about/certs" },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-      {items.map((item, idx) => (
-        <DropdownLink key={idx} {...item} />
-      ))}
-    </div>
-  );
-}
-
-function ContactMenu() {
-  const items = [
-    { title: "Service Request", desc: "Initiate a project inquiry", href: "/contact/request-service" },
-    { title: "Media Relations", desc: "Press releases & updates", href: "/news" },
-    { title: "Technical Support", desc: "Instant assistance channels", href: "/contact/whatsapp" },
-    { title: "Global Offices", desc: "Regional contact information", href: "/contact" },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-      {items.map((item, idx) => (
-        <DropdownLink key={idx} {...item} />
-      ))}
-    </div>
-  );
-}
-
-/* ===================== */
-/* REUSABLE UI HELPERS */
-/* ===================== */
-
-function NavHover({ label, href, onHover, isActive }: { label: string; href: string; onHover: () => void; isActive: boolean }) {
-  return (
-    <div onMouseEnter={onHover} className="relative py-2 cursor-pointer group">
-      <Link href={href} className={`transition-colors ${isActive ? "text-blue-400" : "hover:text-blue-400"}`}>
-        {label}
-      </Link>
+    <div onMouseEnter={() => setMenu(id)} className="relative py-2 cursor-pointer">
+      <div className={`flex items-center gap-1 transition-colors ${activeMenu === id ? "text-blue-400" : ""}`}>
+        {label} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === id ? "rotate-180" : ""}`} />
+      </div>
       <motion.div 
-        animate={{ width: isActive ? "100%" : "0%" }}
+        animate={{ width: activeMenu === id ? "100%" : "0%" }}
         className="absolute -bottom-1 left-0 h-0.5 bg-blue-400"
       />
     </div>
   );
 }
 
-function DropdownLink({ title, desc, href }: { title: string; desc: string; href: string }) {
+function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) {
   return (
-    <Link href={href} className="group block">
-      <h4 className="text-[11px] font-black text-[#002147] uppercase tracking-wider group-hover:text-blue-600 transition-colors mb-1">
-        {title}
-      </h4>
-      <p className="text-xs text-slate-500 font-medium group-hover:text-slate-700">{desc}</p>
-    </Link>
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -10 }}
+      className="hidden lg:block absolute left-0 w-full bg-white text-slate-900 shadow-2xl border-b border-slate-200"
+    >
+      <div className="max-w-7xl mx-auto flex min-h-[400px]">
+        <div className="w-1/3 bg-slate-50 p-12 border-r border-slate-100 flex flex-col justify-between">
+          <div>
+            <div className="w-14 h-14 bg-[#002147] rounded-xl flex items-center justify-center text-white font-black text-xl mb-6">SIS</div>
+            <h2 className="text-2xl font-black text-[#002147] uppercase tracking-tighter mb-4">{data.title}</h2>
+            <p className="text-slate-500 leading-relaxed text-sm font-medium">{data.tagline}</p>
+          </div>
+          <Link href="/services/service-request" onClick={onClose} className="group flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em]">
+            Start Your Project <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="w-2/3 p-12 grid grid-cols-2 gap-x-12 gap-y-10">
+          {data.items.map((item: any, idx: number) => (
+            <Link key={idx} href={item.href} onClick={onClose} className="group flex items-start gap-4">
+              <div className="p-3 bg-slate-100 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all text-blue-600">
+                <item.icon size={24} />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#002147] group-hover:text-blue-600 transition-colors mb-1">{item.title}</h4>
+                <p className="text-[11px] text-slate-500 font-medium leading-normal">{item.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
 /* ===================== */
-/* SIDEBAR DRAWER */
+/* SIDEBAR DRAWER        */
 /* ===================== */
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -301,79 +190,51 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     <AnimatePresence>
       {isOpen && (
         <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-[#002147]/60 backdrop-blur-sm z-[200]" />
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-[#002147]/60 backdrop-blur-sm z-[200]"
-          />
-
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full sm:w-[380px] bg-white shadow-2xl z-[201] overflow-y-auto"
           >
             <div className="bg-[#002147] text-white p-8">
               <div className="flex items-center justify-between mb-8">
-                <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">
-                  SIS
-                </div>
-                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
-                  <X size={24} />
-                </button>
+                <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">SIS</div>
+                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><X size={24} /></button>
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Main Navigation</h2>
-              <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-2">Institutional ICT Services</p>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Menu</h2>
+              <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-2">Simple Technology. Powerful Results.</p>
             </div>
 
-            <div className="p-6 md:p-8 space-y-2">
+            <div className="p-6 space-y-2">
               <SidebarLink href="/" icon={<Home size={20} />} label="Home" onClick={onClose} />
               
               <SidebarSection
-                icon={<Briefcase size={20} />}
-                label="Services"
+                icon={<Briefcase size={20} />} label="Our Services"
                 expanded={expandedSection === "services"}
                 onToggle={() => setExpandedSection(expandedSection === "services" ? null : "services")}
               >
-                <SidebarSubLink href="/services/website-development" label="Website Development" onClick={onClose} />
-                <SidebarSubLink href="/services/application-development" label="Application Development" onClick={onClose} />
-                <SidebarSubLink href="/services/graphic-design" label="Graphic Design" onClick={onClose} />
-                <SidebarSubLink href="/services/ict-teaching" label="ICT Teaching" onClick={onClose} />
-                <SidebarSubLink href="/services/hardware-fixing" label="Hardware Fixing" onClick={onClose} />
-                <SidebarSubLink href="/services/ict-support" label="ICT Support" onClick={onClose} />
+                {NAVIGATION_DATA.services.items.map((item, i) => (
+                  <SidebarSubLink key={i} href={item.href} label={item.title} onClick={onClose} />
+                ))}
               </SidebarSection>
 
               <SidebarSection
-                icon={<Info size={20} />}
-                label="About Us"
+                icon={<Info size={20} />} label="About SIS"
                 expanded={expandedSection === "about"}
                 onToggle={() => setExpandedSection(expandedSection === "about" ? null : "about")}
               >
-                <SidebarSubLink href="/about/who-we-are" label="Corporate Identity" onClick={onClose} />
-                <SidebarSubLink href="/about/our-approach" label="Our Methodology" onClick={onClose} />
-                <SidebarSubLink href="/about/who-we-serve" label="Client Portfolio" onClick={onClose} />
+                {NAVIGATION_DATA.about.items.map((item, i) => (
+                  <SidebarSubLink key={i} href={item.href} label={item.title} onClick={onClose} />
+                ))}
               </SidebarSection>
 
               <SidebarLink href="/team" icon={<Users size={20} />} label="Our Team" onClick={onClose} />
-
-              <SidebarSection
-                icon={<Mail size={20} />}
-                label="Contact"
-                expanded={expandedSection === "contact"}
-                onToggle={() => setExpandedSection(expandedSection === "contact" ? null : "contact")}
-              >
-                <SidebarSubLink href="/contact/request-service" label="Service Request" onClick={onClose} />
-                <SidebarSubLink href="/contact/whatsapp" label="Technical Support" onClick={onClose} />
-                <SidebarSubLink href="/contact" label="Global Offices" onClick={onClose} />
-              </SidebarSection>
+              <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
             </div>
 
             <div className="mt-8 p-8 border-t border-slate-100 bg-slate-50 text-center">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-loose">
-                Empowering Institutions Through <br /> Technical Excellence
+                Architecting Institutional Efficiency
               </p>
             </div>
           </motion.div>
@@ -383,7 +244,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   );
 }
 
-function SidebarLink({ href, icon, label, onClick }: { href: string; icon: any; label: string; onClick: () => void }) {
+function SidebarLink({ href, icon, label, onClick }: any) {
   return (
     <Link href={href} onClick={onClick} className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group">
       <span className="text-blue-600">{icon}</span>
@@ -392,7 +253,7 @@ function SidebarLink({ href, icon, label, onClick }: { href: string; icon: any; 
   );
 }
 
-function SidebarSection({ icon, label, expanded, onToggle, children }: { icon: any; label: string; expanded: boolean; onToggle: () => void; children: React.ReactNode }) {
+function SidebarSection({ icon, label, expanded, onToggle, children }: any) {
   return (
     <div>
       <button onClick={onToggle} className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors group text-left">
@@ -404,7 +265,7 @@ function SidebarSection({ icon, label, expanded, onToggle, children }: { icon: a
       </button>
       <AnimatePresence>
         {expanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pl-12 space-y-2 mt-2 border-l-2 border-blue-100 ml-6">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pl-12 space-y-2 mt-2 border-l-2 border-blue-100 ml-6 overflow-hidden">
             {children}
           </motion.div>
         )}
@@ -413,7 +274,7 @@ function SidebarSection({ icon, label, expanded, onToggle, children }: { icon: a
   );
 }
 
-function SidebarSubLink({ href, label, onClick }: { href: string; label: string; onClick: () => void }) {
+function SidebarSubLink({ href, label, onClick }: any) {
   return (
     <Link href={href} onClick={onClick} className="block py-2 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
       {label}

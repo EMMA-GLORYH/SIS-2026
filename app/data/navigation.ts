@@ -38,19 +38,44 @@ export const NAVIGATION = {
         },
         {
           label: "Technical Support",
-          description: "Comprehensive IT & system support services",
+          description: "IT support, maintenance & troubleshooting",
           href: "/services/technical-support",
         },
       ],
     },
+
     {
       label: "About",
-      href: "/about",
+      type: "dropdown",
+      items: [
+        {
+          label: "About Us",
+          description: "Who we are and what we do",
+          href: "/about",
+        },
+        {
+          label: "Mission & Vision",
+          description: "Our purpose and long-term goals",
+          href: "/about/mission-vision",
+        },
+        {
+          label: "Our Values",
+          description: "Principles that guide our work",
+          href: "/about/values",
+        },
+        {
+          label: "Our Team",
+          description: "Meet the people behind SIS Solutions",
+          href: "/about/team",
+        },
+        {
+          label: "Why Choose Us",
+          description: "What sets us apart",
+          href: "/about/why-us",
+        },
+      ],
     },
-    {
-      label: "Team",
-      href: "/team",
-    },
+
     {
       label: "Contact",
       href: "/contact",
@@ -65,6 +90,13 @@ export const NAVIGATION = {
       { label: "Graphic Designing", href: "/services/graphic-design" },
       { label: "Hardware Fixing", href: "/services/hardware-fixing" },
       { label: "Technical Support", href: "/services/technical-support" },
+    ],
+
+    company: [
+      { label: "About Us", href: "/about" },
+      { label: "Mission & Vision", href: "/about/mission-vision" },
+      { label: "Our Values", href: "/about/values" },
+      { label: "Our Team", href: "/about/team" },
     ],
 
     social: [
