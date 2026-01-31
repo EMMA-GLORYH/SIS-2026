@@ -2,96 +2,119 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { supabase } from "@/app/supabaselogic/supabaseClient";
 
 export async function POST(req: Request) {
   try {
-    const { name, location, comment } = await req.json();
+    // 1. Destructure based on your actual DB columns
+    const { name, email, message, rating } = await req.json();
 
-    // 1. Setup Transporter with Gmail specific settings
+    // Validate required fields based on schema
+    if (!name || !email || !message) {
+      return NextResponse.json(
+        { error: "Missing required fields: Name, Email, and Message are mandatory." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Save comment to Supabase
+    // Mapping to schema: id(uuid), name(text), email(text), message(text), rating(int4)
+    const { error: dbError } = await supabase.from("comments").insert({
+      name,
+      email,
+      message,
+      rating: Number(rating) || 0, // Ensures it hits the int4 requirement
+    });
+
+    if (dbError) {
+      console.error("Supabase Insert Failed:", dbError);
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
+    }
+
+    // 3. Setup Transporter (Gmail SMTP)
     const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST, // smtp.gmail.com
-      port: Number(process.env.EMAIL_PORT), // 587
-      secure: false, // TLS
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Your App Password
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    // 2. Verify connection configuration before sending
-    try {
-      await transporter.verify();
-    } catch (verifyError) {
-      console.error("SMTP Verification Failed:", verifyError);
-      throw new Error("SMTP connection could not be established.");
-    }
+    // 4. Verify SMTP Connection
+    await transporter.verify();
 
     const iconBase = "https://img.icons8.com/ios-filled/50/3b82f6";
     const icons = {
       chat: `${iconBase}/chat-message-sent.png`,
-      map: `${iconBase}/marker.png`,
+      email: `${iconBase}/new-post.png`,
       user: `${iconBase}/user-male-circle.png`,
+      star: `https://img.icons8.com/ios-filled/50/facc15/star.png`,
     };
 
-    const mailOptions = {
+    // 5. Send Executive Email to SIS
+    await transporter.sendMail({
       from: `"SIS Feedback System" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_TO, // This sends it to the CEO email defined in .env
-      subject: `🚨 NEW FEEDBACK: ${name} from ${location}`,
+      to: process.env.EMAIL_TO,
+      subject: `🚨 NEW FEEDBACK: ${name} (${rating}/5 Stars)`,
       html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Helvetica Neue', Arial, sans-serif; }
-            .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-            .banner { background-color: #002147; padding: 40px 20px; text-align: center; }
-            .banner h1 { margin: 0; color: #ffffff; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
-            .badge { display: inline-block; background: #3b82f6; color: white; padding: 5px 15px; border-radius: 30px; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 12px; }
-            .body-content { padding: 40px; }
-            .data-table { width: 100%; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 25px; }
-            .label-text { font-size: 12px; color: #94a3b8; font-weight: bold; text-transform: uppercase; }
-            .value-text { font-size: 15px; color: #0f172a; font-weight: 700; padding-bottom: 15px; }
-            .message-box { background-color: #f8fafc; border-left: 5px solid #002147; border-radius: 12px; padding: 25px; margin-top: 10px; }
-            .quote { color: #334155; font-size: 16px; line-height: 1.6; font-style: italic; margin: 0; }
-            .footer { background: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #f1f5f9; }
-            .footer p { font-size: 11px; color: #94a3b8; margin: 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="banner">
-              <h1>SIS SOLUTIONS</h1>
-              <div class="badge">Executive Alert: Feedback</div>
-            </div>
-            <div class="body-content">
-              <table class="data-table">
-                <tr>
-                  <td class="label-text"><img src="${icons.user}" width="14"> Client Name</td>
-                  <td class="label-text"><img src="${icons.map}" width="14"> Location</td>
-                </tr>
-                <tr>
-                  <td class="value-text">${name}</td>
-                  <td class="value-text">${location}</td>
-                </tr>
-              </table>
-              <div class="label-text" style="margin-bottom:10px;"><img src="${icons.chat}" width="14"> Message Body</div>
-              <div class="message-box">
-                <p class="quote">"${comment}"</p>
-              </div>
-            </div>
-            <div class="footer">
-              <p>Generated by SIS ICT Intelligence System &copy; ${new Date().getFullYear()}</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-    };
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+    .banner { background-color: #002147; padding: 40px 20px; text-align: center; }
+    .banner h1 { margin: 0; color: #ffffff; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+    .badge { display: inline-block; background: #3b82f6; color: white; padding: 5px 15px; border-radius: 30px; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 12px; }
+    .body-content { padding: 40px; }
+    .label-text { font-size: 12px; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-top: 15px; display: block; }
+    .value-text { font-size: 15px; color: #0f172a; font-weight: 700; padding-bottom: 5px; border-bottom: 1px solid #f1f5f9; }
+    .message-box { background-color: #f8fafc; border-left: 5px solid #002147; border-radius: 12px; padding: 25px; margin-top: 10px; }
+    .quote { color: #334155; font-size: 16px; line-height: 1.6; font-style: italic; margin: 0; }
+    .footer { background: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #f1f5f9; }
+    .footer p { font-size: 11px; color: #94a3b8; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="banner">
+      <h1>SIS SOLUTIONS</h1>
+      <div class="badge">Executive Alert: Feedback Received</div>
+    </div>
+    <div class="body-content">
+      <div class="label-text"><img src="${icons.user}" width="12"> Client Name</div>
+      <div class="value-text">${name}</div>
 
-    await transporter.sendMail(mailOptions);
+      <div class="label-text"><img src="${icons.email}" width="12"> Client Email</div>
+      <div class="value-text">${email}</div>
+
+      <div class="label-text"><img src="${icons.star}" width="12"> Satisfaction Rating</div>
+      <div class="value-text">${rating} / 5 Stars</div>
+
+      <div class="label-text" style="margin-top:25px;"><img src="${icons.chat}" width="12"> Detailed Message</div>
+      <div class="message-box">
+        <p class="quote">"${message}"</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Generated by SIS ICT Intelligence System &copy; ${new Date().getFullYear()}</p>
+      <p style="margin-top: 5px;">This is an automated priority alert.</p>
+    </div>
+  </div>
+</body>
+</html>
+      `,
+    });
+
     return NextResponse.json({ success: true });
+
   } catch (error: any) {
     console.error("Critical API Error:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

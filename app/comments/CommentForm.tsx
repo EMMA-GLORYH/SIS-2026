@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, AlignLeft, Star, CheckCircle2, ArrowRight } from "lucide-react";
+import { Send, User, Mail, AlignLeft, Star, CheckCircle2, ArrowRight } from "lucide-react";
 
 export default function CommentForm() {
   const [rating, setRating] = useState(0);
@@ -12,13 +12,15 @@ export default function CommentForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (rating === 0) return alert("Please select a rating");
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const data = {
       name: formData.get("name"),
-      location: "Website User", // Or add a location input
-      comment: formData.get("comment") + ` (Rating: ${rating}/5)`,
+      email: formData.get("email"), // Matches DB schema
+      message: formData.get("message"), // Matches DB schema
+      rating: rating, // Sent as a number (int4)
     };
 
     try {
@@ -50,6 +52,7 @@ export default function CommentForm() {
           onSubmit={handleSubmit} 
           className="space-y-6"
         >
+          {/* Row 1: Name and Email */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Full Name</label>
@@ -60,22 +63,31 @@ export default function CommentForm() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Service Rating</label>
-              <div className="flex items-center gap-2 px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHover(star)}
-                    onMouseLeave={() => setHover(0)}
-                    className="transition-transform active:scale-90"
-                  >
-                    <Star size={24} className={`${star <= (hover || rating) ? "fill-yellow-400 text-yellow-400" : "text-slate-300"}`} />
-                  </button>
-                ))}
-                <span className="ml-2 text-xs font-bold text-slate-400">{rating}/5</span>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                <input name="email" required type="email" className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all text-slate-900" />
               </div>
+            </div>
+          </div>
+
+          {/* Row 2: Rating and Message */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Service Rating</label>
+            <div className="flex items-center gap-2 px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl w-fit">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                  className="transition-transform active:scale-90"
+                >
+                  <Star size={24} className={`${star <= (hover || rating) ? "fill-yellow-400 text-yellow-400" : "text-slate-300"}`} />
+                </button>
+              ))}
+              <span className="ml-2 text-xs font-bold text-slate-400">{rating}/5</span>
             </div>
           </div>
 
@@ -83,7 +95,7 @@ export default function CommentForm() {
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Your Feedback</label>
             <div className="relative">
               <AlignLeft className="absolute left-4 top-6 text-slate-300" size={18} />
-              <textarea name="comment" required rows={4} className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all resize-none text-slate-900"></textarea>
+              <textarea name="message" required rows={4} className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all resize-none text-slate-900"></textarea>
             </div>
           </div>
 
@@ -102,7 +114,6 @@ export default function CommentForm() {
           key="success"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-
           className="text-center py-10"
         >
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">

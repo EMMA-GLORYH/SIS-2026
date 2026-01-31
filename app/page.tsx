@@ -10,10 +10,22 @@ import {
   Globe, 
   Zap, 
   Cpu,
-  Quote, 
-  Star as StarIcon 
+  Star as StarIcon,
+  ThumbsUp,
+  MessageSquare,
+  CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/app/supabaselogic/supabaseClient";
+
+// --- TYPES ---
+interface Comment {
+  id: string;
+  name: string;
+  message: string;
+  rating: number;
+  created_at: string;
+}
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069",
@@ -75,43 +87,26 @@ function HeroSlider() {
 
       <div className="relative z-20 flex h-full items-center max-w-7xl mx-auto px-6">
         <div className="max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3 mb-4 md:mb-6"
-          >
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 mb-4 md:mb-6">
             <span className="w-8 md:w-12 h-[2px] bg-blue-500" />
             <span className="text-blue-400 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs">
               Pioneering Tech Solutions
             </span>
           </motion.div>
           
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-[2.5rem] leading-[1.1] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white mb-6 md:mb-8"
-          >
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-[2.5rem] leading-[1.1] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white mb-6 md:mb-8">
             Engineering <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
               Institutional Growth.
             </span>
           </motion.h1>
 
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-slate-300 text-sm sm:text-base md:text-xl max-w-xl mb-8 leading-relaxed font-medium"
-          >
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-slate-300 text-sm sm:text-base md:text-xl max-w-xl mb-8 leading-relaxed font-medium">
             Providing world-class software ecosystems and ICT infrastructure for schools, NGOs, and global institutions.
           </motion.p>
 
           <Link href="/services/service-request">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-bold text-[10px] md:text-sm uppercase tracking-widest shadow-2xl transition-all flex items-center gap-3"
-            >
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-bold text-[10px] md:text-sm uppercase tracking-widest shadow-2xl transition-all flex items-center gap-3">
               Consult an Expert <ArrowRight size={18} />
             </motion.button>
           </Link>
@@ -125,16 +120,6 @@ function HeroSlider() {
         <button onClick={next} className="pointer-events-auto p-3 md:p-4 rounded-full border border-white/10 text-white hover:bg-white hover:text-[#002147] transition-all backdrop-blur-md">
           <ChevronRight size={24} />
         </button>
-      </div>
-
-      <div className="absolute bottom-6 md:bottom-10 left-1/2 z-30 flex -translate-x-1/2 gap-2 md:gap-4">
-        {HERO_IMAGES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex(i)}
-            className={`h-1 md:h-1.5 transition-all duration-700 rounded-full ${index === i ? "w-10 md:w-16 bg-blue-500" : "w-3 md:w-4 bg-white/20"}`}
-          />
-        ))}
       </div>
     </section>
   );
@@ -151,13 +136,8 @@ function TechStackStrip() {
           Our Industrial Tech Stack
         </p>
       </div>
-      
       <div className="flex relative">
-        <motion.div 
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="flex gap-12 md:gap-24 items-center whitespace-nowrap px-10"
-        >
+        <motion.div animate={{ x: ["0%", "-50%"] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="flex gap-12 md:gap-24 items-center whitespace-nowrap px-10">
           {[...TECH_STACK, ...TECH_STACK].map((tech, idx) => (
             <div key={idx} className="flex items-center gap-3 md:gap-4 group grayscale hover:grayscale-0 transition-all opacity-40 hover:opacity-100 cursor-default">
               <img src={tech.logo} alt={tech.name} className="h-6 md:h-8 w-auto object-contain" />
@@ -202,14 +182,7 @@ function InstitutionalServices() {
 
         <div className="lg:col-span-7 space-y-3 md:space-y-4">
           {features.map((f, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ x: 15 }}
-              className="group p-6 md:p-10 bg-slate-50 hover:bg-[#002147] transition-all duration-500 rounded-2xl md:rounded-[2.5rem] overflow-hidden relative cursor-default"
-            >
+            <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} whileHover={{ x: 15 }} className="group p-6 md:p-10 bg-slate-50 hover:bg-[#002147] transition-all duration-500 rounded-2xl md:rounded-[2.5rem] overflow-hidden relative cursor-default">
               <div className="relative z-10 flex flex-col md:flex-row items-start gap-4 md:gap-8">
                 <div className="text-blue-600 group-hover:text-blue-400 transition-colors bg-white md:bg-transparent p-3 md:p-0 rounded-lg shadow-sm md:shadow-none">
                   {f.icon}
@@ -233,69 +206,155 @@ function InstitutionalServices() {
 }
 
 /* ===================== */
-/* 4. TESTIMONIALS       */
-/* ===================== */
-/* ===================== */
-/* 4. TESTIMONIALS       */
+/* 4. TESTIMONIALS (HOME)*/
 /* ===================== */
 function Testimonials() {
-  const reviews = [
-    { name: "Principal, St. Andrews", text: "The school portal reduced our admin workload by 60%. Essential for modern education.", rating: 5 },
-    { name: "NGO Director", text: "Secure, reliable, and highly professional. The team at SIS understands institutional needs.", rating: 5 }
-  ];
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("comments")
+          .select("id, name, message, rating, created_at")
+          .order("created_at", { ascending: false })
+          .limit(6); // Increased limit for better 3-column filling
+
+        if (error) throw error;
+        setComments(data || []);
+      } catch (err) {
+        console.error("Supabase Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchComments();
+  }, []);
 
   return (
-    <section className="py-24 bg-slate-50 overflow-hidden">
+    <section className="py-24 bg-white border-t border-slate-100">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em] mb-4">Testimonials</h2>
-          <h3 className="text-4xl font-black text-[#002147] tracking-tight">Voices of Success.</h3>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {reviews.map((r, i) => (
-            <motion.div 
-              key={i}
-              whileHover={{ y: -5 }}
-              className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 relative"
-            >
-              <Quote className="absolute top-8 right-10 text-slate-100" size={60} />
-              <div className="flex gap-1 mb-6">
-                {[...Array(r.rating)].map((_, i) => (
-                  <StarIcon key={i} size={14} className="fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8 relative z-10 italic">
-                "{r.text}"
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {r.name[0]}
-                </div>
-                <span className="font-black text-[#002147] text-sm uppercase tracking-wider">{r.name}</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* --- NEW NAVIGATION BUTTON --- */}
-        <div className="flex flex-col items-center justify-center space-y-6">
-          <div className="h-px w-24 bg-slate-200" />
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+          <div className="text-left">
+            <h2 className="text-blue-600 text-[10px] font-black uppercase tracking-[0.4em] mb-4">Community Impact</h2>
+            <h3 className="text-4xl md:text-5xl font-black text-[#002147] tracking-tight">Institutional Trust.</h3>
+          </div>
+          
           <Link href="/comments">
             <motion.button
-              whileHover={{ scale: 1.05, gap: "1.5rem" }}
-              whileTap={{ scale: 0.95 }}
-              className="group flex items-center gap-4 bg-white border-2 border-[#002147] text-[#002147] px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-[#002147] hover:text-white transition-all duration-300"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-3 bg-[#002147] text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-blue-600 transition-all"
             >
-              Share Your Experience
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              View All Reviews <ArrowRight size={16} />
             </motion.button>
           </Link>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Help us improve our institutional services
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-64 bg-slate-50 rounded-[2rem] animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          /* MASONRY WRAPPER */
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            <AnimatePresence>
+              {comments.map((c, i) => (
+                <CommentItem key={c.id} comment={c} index={i} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* --- UPDATED INDIVIDUAL COMMENT COMPONENT --- */
+function CommentItem({ comment, index }: { comment: Comment; index: number }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Professional character threshold for the "Read More" trigger
+  const charLimit = 150;
+  const isLong = comment.message.length > charLimit;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
+      /* break-inside-avoid: Essential for masonry to prevent card splitting */
+      className="break-inside-avoid inline-block w-full bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-500 group mb-6"
+    >
+      {/* 1. TOP SECTION: STARS & VERIFICATION */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-1">
+          {[...Array(5)].map((_, starIdx) => (
+            <StarIcon 
+              key={starIdx} 
+              size={14} 
+              className={`${starIdx < comment.rating ? "fill-yellow-400 text-yellow-400" : "text-slate-200"}`} 
+            />
+          ))}
+        </div>
+        <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center">
+          <CheckCircle2 size={14} className="text-blue-500" />
+        </div>
+      </div>
+
+      {/* 2. MESSAGE SECTION: PROFESSIONAL WORD WRAP */}
+      <div className="relative mb-8">
+        <p className={`text-slate-600 leading-relaxed text-sm md:text-base font-medium transition-all duration-300 
+          ${!isExpanded && isLong ? "line-clamp-3" : ""} 
+          break-all overflow-wrap-anywhere whitespace-pre-wrap`}
+          style={{ wordBreak: 'break-word' }}
+        >
+          "{comment.message}"
+        </p>
+        
+        {isLong && (
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-3 text-blue-600 font-black text-[10px] uppercase tracking-widest hover:text-[#002147] transition-colors flex items-center gap-1"
+          >
+            {isExpanded ? "Show Less" : "Read Full Experience"}
+            <motion.span animate={{ rotate: isExpanded ? 180 : 0 }}>
+              <ChevronRight size={12} className="rotate-90" />
+            </motion.span>
+          </button>
+        )}
+      </div>
+
+      {/* 3. USER FOOTER: matches image_becf7a.png */}
+      <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
+        <div className="w-12 h-12 bg-[#002147] rounded-xl flex items-center justify-center text-white font-black text-lg shrink-0 shadow-inner">
+          {comment.name[0].toUpperCase()}
+        </div>
+        <div className="overflow-hidden">
+          <h4 className="font-black text-[#002147] text-[12px] md:text-[13px] uppercase tracking-tighter truncate">
+            {comment.name}
+          </h4>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+            {new Date(comment.created_at).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            })}
           </p>
         </div>
       </div>
-    </section>
+
+      {/* 4. INTERACTION LAYER */}
+      <div className="flex items-center gap-6 mt-6 opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <button className="flex items-center gap-1.5 text-slate-400 hover:text-blue-600 transition-colors">
+          <ThumbsUp size={14} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Helpful</span>
+        </button>
+      </div>
+    </motion.div>
   );
 }
