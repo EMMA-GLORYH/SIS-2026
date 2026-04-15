@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Menu, X, ChevronDown, Search, ArrowRight, Home, MessageSquare, ChevronRight, 
+  Menu, X, ChevronDown, Bell, ArrowRight, Home, MessageSquare, ChevronRight, 
   Briefcase, Users, Mail, Info, Target, Workflow, 
   Award, Globe, ShieldCheck, Cpu, Zap, Lock
 } from "lucide-react";
@@ -41,10 +41,10 @@ const NAVIGATION_DATA = {
 export default function Navbar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => { setOpenMenu(null); setIsSearchOpen(false); };
+    const handleScroll = () => { setOpenMenu(null); setShowNotifications(false); };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -81,10 +81,18 @@ export default function Navbar() {
           </nav>
 
           {/* ACTIONS */}
-          <div className="flex items-center gap-2">
-            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="p-2.5 hover:bg-white/10 rounded-full transition-all">
-              <Search size={20} className={isSearchOpen ? "text-blue-400" : "text-white"} />
+          {/* ACTIONS */}
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)} 
+              className="relative p-2.5 hover:bg-white/10 rounded-full transition-all group"
+              title="Admin Notifications"
+            >
+              <Bell size={20} className={showNotifications ? "text-blue-400" : "text-white group-hover:text-blue-200"} />
+              {/* Optional: Red dot indicator for unread notifications */}
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-[#002147]"></span>
             </button>
+
             <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
               <Menu size={18} />
               <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
@@ -103,29 +111,14 @@ export default function Navbar() {
         </AnimatePresence>
       </header>
 
-      {/* SEARCH BAR */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="bg-white overflow-hidden border-b border-slate-200">
-             <div className="max-w-4xl mx-auto px-6 py-12">
-               <input 
-                type="text" 
-                placeholder="How can we help you today?" 
-                className="w-full h-16 px-8 rounded-full border-2 border-slate-100 focus:border-blue-600 outline-none text-slate-900 text-xl font-medium shadow-inner"
-               />
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+   
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );
 }
 
-/* ===================== */
 /* SUB-COMPONENTS        */
-/* ===================== */
+
 
 function NavTrigger({ label, id, activeMenu, setMenu }: any) {
   return (
