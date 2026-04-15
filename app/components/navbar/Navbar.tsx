@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Menu, X, ChevronDown, Bell, ArrowRight, Home, MessageSquare, ChevronRight, 
   Briefcase, Users, Mail, Info, Target, Workflow, 
-  Award, Globe, ShieldCheck, Cpu, Zap, Lock
+  Award, Globe, ShieldCheck, Cpu, Zap, Lock, CheckCircle2
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
-/* ===================== */
+
 /* DATA CONFIGURATION    */
-/* ===================== */
 
 const NAVIGATION_DATA = {
   services: {
@@ -38,15 +39,75 @@ const NAVIGATION_DATA = {
   }
 };
 
+/* ===================== */
+/* TYPES                 */
+/* ===================== */
+interface AppNotification {
+  id: string;
+  client_name: string;
+  message: string;
+  created_at: string;
+  is_reviewed?: boolean;
+}
+
 export default function Navbar() {
+  const router = useRouter();
+  
+  // Navigation State
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Notification State
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [toastAlert, setToastAlert] = useState<AppNotification | null>(null);
 
   useEffect(() => {
     const handleScroll = () => { setOpenMenu(null); setShowNotifications(false); };
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    // 1. Fetch initial latest notifications (Limit to 5 for the dropdown)
+    const fetchLatestMessages = async () => {
+      const { data, error } = await supabase
+        .from("feedback") // Change to "comments" if that's your table name
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (data) {
+        setNotifications(data);
+        // Assuming you add an 'is_reviewed' boolean to your DB later. For now, we simulate unread count based on recent fetching.
+        setUnreadCount(data.filter(d => !d.is_reviewed).length);
+      }
+    };
+
+    fetchLatestMessages();
+
+    // 2. Subscribe to Real-time Inserts (Popup Trigger)
+    const channel = supabase
+      .channel("realtime-messages")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "feedback" }, // Change table name if needed
+        (payload) => {
+          const newMsg = payload.new as AppNotification;
+          
+          // Update Dropdown List & Count
+          setNotifications((prev) => [newMsg, ...prev].slice(0, 5));
+          setUnreadCount((prev) => prev + 1);
+          
+          // Trigger Toast Popup
+          setToastAlert(newMsg);
+          setTimeout(() => setToastAlert(null), 5000); // Auto-hide after 5 seconds
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
@@ -71,27 +132,88 @@ export default function Navbar() {
           {/* DESKTOP NAV */}
           <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
             <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
-            
             <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
             <NavTrigger label="About SIS" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
-            
             <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
             <Link href="/comments" className="hover:text-blue-400 transition-colors">Comments</Link>
             <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
           {/* ACTIONS */}
-          {/* ACTIONS */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 relative">
+            
+            {/* NOTIFICATION BELL */}
             <button 
               onClick={() => setShowNotifications(!showNotifications)} 
               className="relative p-2.5 hover:bg-white/10 rounded-full transition-all group"
               title="Admin Notifications"
             >
               <Bell size={20} className={showNotifications ? "text-blue-400" : "text-white group-hover:text-blue-200"} />
-              {/* Optional: Red dot indicator for unread notifications */}
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-[#002147]"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-[#002147]">
+                  {unreadCount}
+                </span>
+              )}
             </button>
+
+            {/* NOTIFICATION DROPDOWN PANEL */}
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-16 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden text-left z-50"
+                >
+                  <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 flex justify-between items-center">
+                    <h3 className="text-[#002147] font-black text-sm uppercase tracking-wider">Recent Activity</h3>
+                    <button 
+                      onClick={() => setUnreadCount(0)} 
+                      className="text-[10px] text-blue-600 font-bold hover:underline"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+                  
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400 text-xs font-medium">No new messages</div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <div 
+                          key={notif.id}
+                          onClick={() => {
+                            setShowNotifications(false);
+                            router.push('/notifications');
+                          }}
+                          className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-[#002147] text-xs">{notif.client_name}</span>
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">
+                              {new Date(notif.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-slate-500 text-[11px] line-clamp-2 leading-relaxed">
+                            {notif.message}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  <div className="bg-slate-50 border-t border-slate-100 p-2">
+                    <Link 
+                      href="/notifications" 
+                      onClick={() => setShowNotifications(false)}
+                      className="block w-full text-center py-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      View All Messages
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
               <Menu size={18} />
@@ -111,7 +233,39 @@ export default function Navbar() {
         </AnimatePresence>
       </header>
 
-   
+      {/* TOAST POPUP NOTIFICATION (Triggered on new message) */}
+      <AnimatePresence>
+        {toastAlert && (
+          <motion.div 
+            initial={{ opacity: 0, x: 50, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed bottom-6 right-6 w-80 bg-white rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,33,71,0.2)] border border-slate-100 p-4 z-[200] cursor-pointer group"
+            onClick={() => {
+              setToastAlert(null);
+              router.push('/notifications');
+            }}
+          >
+            <button 
+              onClick={(e) => { e.stopPropagation(); setToastAlert(null); }}
+              className="absolute top-2 right-2 p-1 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <X size={14} />
+            </button>
+            <div className="flex gap-3">
+              <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center shrink-0">
+                <MessageSquare size={18} className="text-blue-600" />
+              </div>
+              <div>
+                <h4 className="text-[11px] font-black text-[#002147] uppercase tracking-wider mb-1">New Message Received</h4>
+                <p className="text-xs text-slate-600 font-medium mb-1">From: <span className="font-bold">{toastAlert.client_name}</span></p>
+                <p className="text-[11px] text-slate-400 line-clamp-1 italic">"{toastAlert.message}"</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
   );
