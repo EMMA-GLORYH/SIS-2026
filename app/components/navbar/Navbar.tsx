@@ -52,7 +52,7 @@ interface AppNotification {
 
 export default function Navbar() {
   const router = useRouter();
-  
+  const [user, setUser] = useState<any>(null);
   // Navigation State
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function Navbar() {
     // 1. Fetch initial latest notifications (Limit to 5 for the dropdown)
     const fetchLatestMessages = async () => {
       const { data, error } = await supabase
-        .from("feedback") // Change to "comments" if that's your table name
+        .from("comments") // Change to "comments" if that's your table name
         .select("*")
         .order("created_at", { ascending: false })
         .limit(5);
@@ -89,7 +89,7 @@ export default function Navbar() {
       .channel("realtime-messages")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "feedback" }, // Change table name if needed
+        { event: "INSERT", schema: "public", table: "comments" }, // Change table name if needed
         (payload) => {
           const newMsg = payload.new as AppNotification;
           
@@ -108,6 +108,20 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
       supabase.removeChannel(channel);
     };
+
+    // --- CHANGE 2: AUTH SESSION LISTENER ---
+const checkUser = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  setUser(session?.user ?? null);
+};
+checkUser();
+
+const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  setUser(session?.user ?? null);
+});
+
+// Add "subscription.unsubscribe()" to your return cleanup at the bottom of useEffect:
+// return () => { ... subscription.unsubscribe(); };
   }, []);
 
   return (
@@ -143,18 +157,20 @@ export default function Navbar() {
           <div className="flex items-center gap-4 relative">
             
             {/* NOTIFICATION BELL */}
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)} 
-              className="relative p-2.5 hover:bg-white/10 rounded-full transition-all group"
-              title="Admin Notifications"
-            >
-              <Bell size={20} className={showNotifications ? "text-blue-400" : "text-white group-hover:text-blue-200"} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-[#002147]">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
+            {/*ONLY SHOW BELL IF USER EXISTS --- */}
+            {user && (
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)} 
+                className="relative p-2.5 hover:bg-white/10 rounded-full transition-all group"
+              >
+                <Bell size={20} className={showNotifications ? "text-blue-400" : "text-white group-hover:text-blue-200"} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-[#002147]">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* NOTIFICATION DROPDOWN PANEL */}
             <AnimatePresence>
@@ -235,8 +251,8 @@ export default function Navbar() {
 
       {/* TOAST POPUP NOTIFICATION (Triggered on new message) */}
       <AnimatePresence>
-        {toastAlert && (
-          <motion.div 
+      {toastAlert && user && (
+        <motion.div
             initial={{ opacity: 0, x: 50, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -332,6 +348,17 @@ function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) 
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  // --- ADD THIS: Access current user state ---
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/"; // Refresh to clear admin state
+  };
 
   return (
     <AnimatePresence>
@@ -381,7 +408,32 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               <SidebarLink href="/comments" icon={<MessageSquare size={20} />} label="Comments" onClick={onClose} />
               
               <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
+
+              <SidebarLink href="/notifications" icon={<MessageSquare size={20} />} label="Manage Comments" onClick={onClose}/>
             </div>
+
+            {/* --- CHANGE 1: ADD LOGIN/LOGOUT BUTTON --- */}
+            <div className="pt-6 mt-6 border-t border-slate-100">
+              {user ? (
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors group"
+                >
+                  <Lock size={20} />
+                  <span className="font-bold uppercase text-[11px] tracking-wider">Logout Admin</span>
+                </button>
+              ) : (
+                <Link 
+                  href="/login" 
+                  onClick={onClose}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors group"
+                >
+                  <Lock size={20} />
+                  <span className="font-bold uppercase text-[11px] tracking-wider">Admin Login</span>
+                </Link>
+              )}
+            </div>
+          
 
             <div className="mt-8 p-8 border-t border-slate-100 bg-slate-50 text-center">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-loose">
