@@ -232,12 +232,8 @@ function InstitutionalServices() {
   );
 }
 
-/* ===================== */
-/* 4. TESTIMONIALS       */
-/* ===================== */
-/* ===================== */
-/* 4. TESTIMONIALS       */
-/* ===================== */
+
+/* 4. TESTIMONIALS */
 function Testimonials() {
   const reviews = [
     { name: "Principal, St. Andrews", text: "The school portal reduced our admin workload by 60%. Essential for modern education.", rating: 5 },

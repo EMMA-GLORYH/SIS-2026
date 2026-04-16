@@ -409,7 +409,6 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               
               <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
 
-              <SidebarLink href="/notifications" icon={<MessageSquare size={20} />} label="Manage Comments" onClick={onClose}/>
             </div>
 
             {/* --- CHANGE 1: ADD LOGIN/LOGOUT BUTTON --- */}
