@@ -155,6 +155,16 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess
 
           {/* ACTIONS */}
           <div className="flex items-center gap-4 relative">
+
+            {/* REGISTER BUTTON (Desktop) - Only show if no user is logged in */}
+            {!user && (
+              <Link 
+                href="/signup" 
+                className="hidden md:flex items-center gap-2 bg-white text-[#002147] hover:bg-blue-50 px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95 border border-white/20"
+              >
+                Register Org <ArrowRight size={14} />
+              </Link>
+            )}
             
             {/* NOTIFICATION BELL */}
             {/*ONLY SHOW BELL IF USER EXISTS --- */}
