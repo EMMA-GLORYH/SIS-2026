@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Menu, X, ChevronDown, Bell, ArrowRight, Home, MessageSquare, ChevronRight, 
   Briefcase, Users, Mail, Info, Target, Workflow, 
-  Award, Globe, ShieldCheck, Cpu, Zap, Lock, CheckCircle2
+  Award, Globe, ShieldCheck, Cpu, Zap, Lock, CheckCircle2, LogIn, LogOut, UserPlus, User
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -53,6 +53,8 @@ interface AppNotification {
 export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  
   // Navigation State
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,65 +66,82 @@ export default function Navbar() {
   const [toastAlert, setToastAlert] = useState<AppNotification | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => { setOpenMenu(null); setShowNotifications(false); };
-    window.addEventListener("scroll", handleScroll);
+    // --- 1. INITIAL DATA FETCHING ---
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
 
-    // 1. Fetch initial latest notifications (Limit to 5 for the dropdown)
     const fetchLatestMessages = async () => {
       const { data, error } = await supabase
-        .from("comments") // Change to "comments" if that's your table name
+        .from("comments")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(5);
 
       if (data) {
         setNotifications(data);
-        // Assuming you add an 'is_reviewed' boolean to your DB later. For now, we simulate unread count based on recent fetching.
         setUnreadCount(data.filter(d => !d.is_reviewed).length);
       }
     };
 
+    checkUser();
     fetchLatestMessages();
 
-    // 2. Subscribe to Real-time Inserts (Popup Trigger)
+    // --- 2. AUTH SESSION LISTENER ---
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      
+      // Handle page refresh/redirect logic on sign in/out if needed
+      if (event === 'SIGNED_OUT') {
+        setShowProfileDropdown(false);
+        router.refresh();
+      }
+    });
+
+    // --- 3. REAL-TIME NOTIFICATIONS CHANNEL ---
     const channel = supabase
       .channel("realtime-messages")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "comments" }, // Change table name if needed
+        { event: "INSERT", schema: "public", table: "comments" },
         (payload) => {
           const newMsg = payload.new as AppNotification;
           
-          // Update Dropdown List & Count
           setNotifications((prev) => [newMsg, ...prev].slice(0, 5));
           setUnreadCount((prev) => prev + 1);
           
-          // Trigger Toast Popup
+          // Only show toast if the user is the admin (Emmanuel)
+          // Adjust this check based on your specific admin identification logic
           setToastAlert(newMsg);
-          setTimeout(() => setToastAlert(null), 5000); // Auto-hide after 5 seconds
+          setTimeout(() => setToastAlert(null), 5000);
         }
       )
       .subscribe();
 
+    // --- 4. UI EVENT HANDLERS ---
+    const handleScroll = () => { 
+      setOpenMenu(null); 
+      setShowNotifications(false); 
+      setShowProfileDropdown(false);
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    // --- 5. CLEANUP (One consolidated return) ---
     return () => {
       window.removeEventListener("scroll", handleScroll);
       supabase.removeChannel(channel);
+      authSubscription.unsubscribe();
     };
+  }, [router]);
 
-    // --- CHANGE 2: AUTH SESSION LISTENER ---
-const checkUser = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  setUser(session?.user ?? null);
-};
-checkUser();
-
-const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-  setUser(session?.user ?? null);
-});
-
-// Add "subscription.unsubscribe()" to your return cleanup at the bottom of useEffect:
-// return () => { ... subscription.unsubscribe(); };
-  }, []);
+  // Logout Functionality
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setShowProfileDropdown(false);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <>
@@ -154,98 +173,84 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess
           </nav>
 
           {/* ACTIONS */}
-          <div className="flex items-center gap-4 relative">
+            {/* ACTIONS */}
+<div className="flex items-center gap-4 relative">
+  
+  {/* PROFILE DROPDRON SYSTEM */}
+  <div className="relative">
+    <button 
+      onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+      className="flex items-center gap-2 bg-white/10 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+    >
+      {user ? (
+        <img 
+          src={user.user_metadata.avatar_url} 
+          alt="User" 
+          className="w-8 h-8 rounded-full border border-blue-400"
+        />
+      ) : (
+        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
+          <User size={18} />
+        </div>
+      )}
+      <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+    </button>
 
-            {/* REGISTER BUTTON (Desktop) - Only show if no user is logged in */}
-            {!user && (
+    {/* DROP DOWN PANEL */}
+    <AnimatePresence>
+      {showProfileDropdown && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+          className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
+        >
+          {user ? (
+            /* SIGNED IN VIEW */
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-4 p-2 bg-slate-50 rounded-xl">
+                <img src={user.user_metadata.avatar_url} className="w-10 h-10 rounded-full" />
+                <div className="overflow-hidden">
+                  <p className="text-[#002147] font-black text-xs truncate">{user.user_metadata.full_name}</p>
+                  <p className="text-slate-400 text-[10px] truncate">{user.email}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => supabase.auth.signOut()}
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut size={14} /> Sign Out
+              </button>
+            </div>
+          ) : (
+            /* GUEST VIEW */
+            <div className="p-3 space-y-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Account Access</p>
+              <Link 
+                href="/login" 
+                className="flex items-center gap-3 px-4 py-3 text-[#002147] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
+              >
+                <LogIn size={16} className="text-blue-600" /> Log In
+              </Link>
               <Link 
                 href="/signup" 
-                className="hidden md:flex items-center gap-2 bg-white text-[#002147] hover:bg-blue-50 px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-md active:scale-95 border border-white/20"
+                className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 rounded-xl transition-all"
               >
-                Register Org <ArrowRight size={14} />
+                <UserPlus size={16} /> Sign Up Free
               </Link>
-            )}
-            
-            {/* NOTIFICATION BELL */}
-            {/*ONLY SHOW BELL IF USER EXISTS --- */}
-            {user && (
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)} 
-                className="relative p-2.5 hover:bg-white/10 rounded-full transition-all group"
-              >
-                <Bell size={20} className={showNotifications ? "text-blue-400" : "text-white group-hover:text-blue-200"} />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-[#002147]">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-            )}
+            </div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
 
-            {/* NOTIFICATION DROPDOWN PANEL */}
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-16 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden text-left z-50"
-                >
-                  <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 flex justify-between items-center">
-                    <h3 className="text-[#002147] font-black text-sm uppercase tracking-wider">Recent Activity</h3>
-                    <button 
-                      onClick={() => setUnreadCount(0)} 
-                      className="text-[10px] text-blue-600 font-bold hover:underline"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="p-6 text-center text-slate-400 text-xs font-medium">No new messages</div>
-                    ) : (
-                      notifications.map((notif) => (
-                        <div 
-                          key={notif.id}
-                          onClick={() => {
-                            setShowNotifications(false);
-                            router.push('/notifications');
-                          }}
-                          className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors"
-                        >
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="font-bold text-[#002147] text-xs">{notif.client_name}</span>
-                            <span className="text-[9px] text-slate-400 font-bold uppercase">
-                              {new Date(notif.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-slate-500 text-[11px] line-clamp-2 leading-relaxed">
-                            {notif.message}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  
-                  <div className="bg-slate-50 border-t border-slate-100 p-2">
-                    <Link 
-                      href="/notifications" 
-                      onClick={() => setShowNotifications(false)}
-                      className="block w-full text-center py-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      View All Messages
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
-              <Menu size={18} />
-              <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
-            </button>
-          </div>
+  {/* MENU BUTTON (Always visible) */}
+  <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
+    <Menu size={18} />
+    <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
+  </button>
+</div>
         </div>
 
         {/* MEGA MENU */}
