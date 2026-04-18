@@ -14,14 +14,23 @@ export default function SignupPage() {
   const router = useRouter();
 
   const handleGoogleSignup = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      // This ensures the user sees the Google Account selection screen
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'select_account',
       },
-    });
-    if (error) alert(error.message);
-  };
+      // window.location.origin dynamically handles localhost or your production domain
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    console.error("Auth Error:", error.message);
+  }
+};
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();

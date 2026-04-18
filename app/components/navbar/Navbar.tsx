@@ -172,85 +172,110 @@ export default function Navbar() {
             <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
-          {/* ACTIONS */}
+      
             {/* ACTIONS */}
-<div className="flex items-center gap-4 relative">
-  
-  {/* PROFILE DROPDRON SYSTEM */}
-  <div className="relative">
-    <button 
-      onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-      className="flex items-center gap-2 bg-white/10 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
-    >
-      {user ? (
-        <img 
-          src={user.user_metadata.avatar_url} 
-          alt="User" 
-          className="w-8 h-8 rounded-full border border-blue-400"
-        />
-      ) : (
-        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
-          <User size={18} />
-        </div>
-      )}
-      <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
-    </button>
-
-    {/* DROP DOWN PANEL */}
-    <AnimatePresence>
-      {showProfileDropdown && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-          className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
-        >
-          {user ? (
-            /* SIGNED IN VIEW */
-            <div className="p-4">
-              <div className="flex items-center gap-3 mb-4 p-2 bg-slate-50 rounded-xl">
-                <img src={user.user_metadata.avatar_url} className="w-10 h-10 rounded-full" />
-                <div className="overflow-hidden">
-                  <p className="text-[#002147] font-black text-xs truncate">{user.user_metadata.full_name}</p>
-                  <p className="text-slate-400 text-[10px] truncate">{user.email}</p>
+          <div className="flex items-center gap-4 relative">
+            
+            {/* PROFILE DROPDOWN SYSTEM — hover to open, hover-leave to close */}
+          <div
+            className="relative"
+            onMouseEnter={() => setShowProfileDropdown(true)}
+            onMouseLeave={() => setShowProfileDropdown(false)}
+          >
+            <button 
+              className="flex items-center gap-2 bg-white/10 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+            >
+              {user ? (
+                <div className="relative">
+                  <img 
+                    src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}&background=0D8ABC&color=fff`} 
+                    alt="User" 
+                    referrerPolicy="no-referrer"
+                    className="w-8 h-8 rounded-full border border-blue-400 object-cover"
+                  />
+                  {/* Verification Badge for Admin */}
+                  {user.email === 'emmanuelhienwo@gmail.com' && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#001529]" />
+                  )}
                 </div>
-              </div>
-              <button 
-                onClick={() => supabase.auth.signOut()}
-                className="w-full flex items-center justify-center gap-2 py-2.5 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <LogOut size={14} /> Sign Out
-              </button>
-            </div>
-          ) : (
-            /* GUEST VIEW */
-            <div className="p-3 space-y-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Account Access</p>
-              <Link 
-                href="/login" 
-                className="flex items-center gap-3 px-4 py-3 text-[#002147] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
-              >
-                <LogIn size={16} className="text-blue-600" /> Log In
-              </Link>
-              <Link 
-                href="/signup" 
-                className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 rounded-xl transition-all"
-              >
-                <UserPlus size={16} /> Sign Up Free
-              </Link>
-            </div>
-          )}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
+                  <User size={18} />
+                </div>
+              )}
+              <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+            </button>
 
-  {/* MENU BUTTON (Always visible) */}
-  <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
-    <Menu size={18} />
-    <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
-  </button>
-</div>
+            <AnimatePresence>
+              {showProfileDropdown && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
+                >
+                  {user ? (
+                    <div className="p-4">
+                      <div className="flex items-center gap-3 mb-4 p-2 bg-slate-50 rounded-xl">
+                        <img 
+                          src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} 
+                          referrerPolicy="no-referrer"
+                          className="w-10 h-10 rounded-full border border-slate-200" 
+                        />
+                        <div className="overflow-hidden">
+                          <p className="text-[#002147] font-black text-xs truncate">
+                            {user.user_metadata?.full_name || "Authorized User"}
+                          </p>
+                          <p className="text-slate-400 text-[10px] truncate">{user.email}</p>
+                        </div>
+                      </div>
+
+                      {/* Added professional Admin Badge in dropdown */}
+                      {user.email === 'emmanuelhienwo@gmail.com' && (
+                        <div className="mb-4 px-2 py-1 bg-blue-50 rounded-lg border border-blue-100">
+                          <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">System Administrator</p>
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                          router.refresh(); // Forces the UI to update to Guest View
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                      >
+                        <LogOut size={14} /> Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    /* GUEST VIEW - KEEP AS IS */
+                    <div className="p-3 space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Account Access</p>
+                      <Link 
+                        href="/login" 
+                        className="flex items-center gap-3 px-4 py-3 text-[#002147] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
+                      >
+                        <LogIn size={16} className="text-blue-600" /> Log In
+                      </Link>
+                      <Link 
+                        href="/signup" 
+                        className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 rounded-xl transition-all"
+                      >
+                        <UserPlus size={16} /> Sign Up Free
+                      </Link>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+            {/* MENU BUTTON (Always visible) */}
+            <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
+              <Menu size={18} />
+              <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
+            </button>
+          </div>
         </div>
 
         {/* MEGA MENU */}
