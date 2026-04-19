@@ -43,11 +43,8 @@ export default function LoginPage() {
     if (error) {
       alert(error.message);
     } else {
-      if (data.user?.email === 'emmanuelhienwo@gmail.com') {
-        router.push("/notifications");
-      } else {
-        router.push("/");
-      }
+      // ALL users go to home page after login
+      router.push("/");
       router.refresh();
     }
     setLoading(false);

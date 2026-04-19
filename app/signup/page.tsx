@@ -47,8 +47,9 @@ export default function SignupPage() {
     if (error) {
       alert(error.message);
     } else {
-      alert("Registration successful! Check your email for verification.");
-      router.push("/login");
+      // ALL users go to home page after signup
+      router.push("/");
+      router.refresh();
     }
     setLoading(false);
   };

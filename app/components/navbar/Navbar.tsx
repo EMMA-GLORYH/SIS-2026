@@ -92,9 +92,9 @@ export default function Navbar() {
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       
-      // Handle page refresh/redirect logic on sign in/out if needed
       if (event === 'SIGNED_OUT') {
         setShowProfileDropdown(false);
+        setShowNotifications(false);
         router.refresh();
       }
     });
@@ -111,8 +111,6 @@ export default function Navbar() {
           setNotifications((prev) => [newMsg, ...prev].slice(0, 5));
           setUnreadCount((prev) => prev + 1);
           
-          // Only show toast if the user is the admin (Emmanuel)
-          // Adjust this check based on your specific admin identification logic
           setToastAlert(newMsg);
           setTimeout(() => setToastAlert(null), 5000);
         }
@@ -172,103 +170,181 @@ export default function Navbar() {
             <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
-      
-            {/* ACTIONS */}
-          <div className="flex items-center gap-4 relative">
-            
-            {/* PROFILE DROPDOWN SYSTEM — hover to open, hover-leave to close */}
-          <div
-            className="relative"
-            onMouseEnter={() => setShowProfileDropdown(true)}
-            onMouseLeave={() => setShowProfileDropdown(false)}
-          >
-            <button 
-              className="flex items-center gap-2 bg-white/10 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
-            >
-              {user ? (
-                <div className="relative">
-                  <img 
-                    src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}&background=0D8ABC&color=fff`} 
-                    alt="User" 
-                    referrerPolicy="no-referrer"
-                    className="w-8 h-8 rounded-full border border-blue-400 object-cover"
-                  />
-                  {/* Verification Badge for Admin */}
-                  {user.email === 'emmanuelhienwo@gmail.com' && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#001529]" />
-                  )}
-                </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
-                  <User size={18} />
-                </div>
-              )}
-              <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
-            </button>
+          {/* ACTIONS */}
+          <div className="flex items-center gap-3 relative">
 
-            <AnimatePresence>
-              {showProfileDropdown && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
+            {/* NOTIFICATION BELL — only shown when user is logged in */}
+            {user && user.email === 'emmanuelhienwo@gmail.com' && (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    setShowProfileDropdown(false);
+                  }}
+                  className="relative flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all active:scale-95"
                 >
-                  {user ? (
-                    <div className="p-4">
-                      <div className="flex items-center gap-3 mb-4 p-2 bg-slate-50 rounded-xl">
-                        <img 
-                          src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} 
-                          referrerPolicy="no-referrer"
-                          className="w-10 h-10 rounded-full border border-slate-200" 
-                        />
-                        <div className="overflow-hidden">
-                          <p className="text-[#002147] font-black text-xs truncate">
-                            {user.user_metadata?.full_name || "Authorized User"}
-                          </p>
-                          <p className="text-slate-400 text-[10px] truncate">{user.email}</p>
-                        </div>
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-black flex items-center justify-center border border-[#002147]">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
+                    >
+                      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <h4 className="text-[10px] font-black text-[#002147] uppercase tracking-widest">Updates & Notifications</h4>
+                        {unreadCount > 0 && (
+                          <span className="text-[9px] font-bold bg-red-50 text-red-500 px-2 py-0.5 rounded-full">
+                            {unreadCount} new
+                          </span>
+                        )}
                       </div>
 
-                      {/* Added professional Admin Badge in dropdown */}
-                      {user.email === 'emmanuelhienwo@gmail.com' && (
-                        <div className="mb-4 px-2 py-1 bg-blue-50 rounded-lg border border-blue-100">
-                          <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">System Administrator</p>
-                        </div>
-                      )}
+                      <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
+                        {notifications.length === 0 ? (
+                          <div className="p-6 text-center">
+                            <Bell size={28} className="text-slate-200 mx-auto mb-2" />
+                            <p className="text-xs text-slate-400 font-medium">No notifications yet</p>
+                          </div>
+                        ) : (
+                          notifications.map((n) => (
+                            <div
+                              key={n.id}
+                              className={`flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${!n.is_reviewed ? 'bg-blue-50/40' : ''}`}
+                            >
+                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                                <MessageSquare size={14} className="text-blue-600" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="text-[11px] font-black text-[#002147] truncate">{n.client_name}</p>
+                                <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{n.message}</p>
+                                <p className="text-[9px] text-slate-300 font-medium mt-1">
+                                  {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
 
-                      <button 
-                        onClick={async () => {
-                          await supabase.auth.signOut();
-                          router.refresh(); // Forces the UI to update to Guest View
-                        }}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
-                      >
-                        <LogOut size={14} /> Sign Out
-                      </button>
-                    </div>
-                  ) : (
-                    /* GUEST VIEW - KEEP AS IS */
-                    <div className="p-3 space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Account Access</p>
-                      <Link 
-                        href="/login" 
-                        className="flex items-center gap-3 px-4 py-3 text-[#002147] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
-                      >
-                        <LogIn size={16} className="text-blue-600" /> Log In
-                      </Link>
-                      <Link 
-                        href="/signup" 
-                        className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 rounded-xl transition-all"
-                      >
-                        <UserPlus size={16} /> Sign Up Free
-                      </Link>
-                    </div>
+                      <div className="px-4 py-3 border-t border-slate-100">
+                        <Link
+                          href="/notifications"
+                          onClick={() => setShowNotifications(false)}
+                          className="flex items-center justify-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                        >
+                          View All Updates <ArrowRight size={12} />
+                        </Link>
+                      </div>
+                    </motion.div>
                   )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* PROFILE DROPDOWN SYSTEM — hover to open, hover-leave to close */}
+            <div
+              className="relative"
+              onMouseEnter={() => setShowProfileDropdown(true)}
+              onMouseLeave={() => setShowProfileDropdown(false)}
+            >
+              <button 
+                className="flex items-center gap-2 bg-white/10 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+              >
+                {user ? (
+                  <div className="relative">
+                    <img 
+                      src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}&background=0D8ABC&color=fff`} 
+                      alt="User" 
+                      referrerPolicy="no-referrer"
+                      className="w-8 h-8 rounded-full border border-blue-400 object-cover"
+                    />
+                    {/* Verification Badge for Admin */}
+                    {user.email === 'emmanuelhienwo@gmail.com' && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#001529]" />
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
+                    <User size={18} />
+                  </div>
+                )}
+                <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showProfileDropdown && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
+                  >
+                    {user ? (
+                      <div className="p-4">
+                        <div className="flex items-center gap-3 mb-4 p-2 bg-slate-50 rounded-xl">
+                          <img 
+                            src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}`} 
+                            referrerPolicy="no-referrer"
+                            className="w-10 h-10 rounded-full border border-slate-200 object-cover" 
+                            alt="User avatar"
+                          />
+                          <div className="overflow-hidden">
+                            <p className="text-[#002147] font-black text-xs truncate">
+                              {user.user_metadata?.full_name || user.user_metadata?.name || "Active User"}
+                            </p>
+                            <p className="text-slate-400 text-[10px] truncate">{user.email}</p>
+                          </div>
+                        </div>
+
+                        {/* Admin Badge */}
+                        {user.email === 'emmanuelhienwo@gmail.com' && (
+                          <div className="mb-4 px-2 py-1 bg-blue-50 rounded-lg border border-blue-100">
+                            <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">System Administrator</p>
+                          </div>
+                        )}
+
+                        <button 
+                          onClick={async () => {
+                            await supabase.auth.signOut();
+                            router.push("/");
+                            router.refresh();
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                        >
+                          <LogOut size={14} /> Sign Out
+                        </button>
+                      </div>
+                    ) : (
+                      /* GUEST VIEW */
+                      <div className="p-3 space-y-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Account Access</p>
+                        <Link 
+                          href="/login" 
+                          className="flex items-center gap-3 px-4 py-3 text-[#002147] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
+                        >
+                          <LogIn size={16} className="text-blue-600" /> Log In
+                        </Link>
+                        <Link 
+                          href="/signup" 
+                          className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 rounded-xl transition-all"
+                        >
+                          <UserPlus size={16} /> Sign Up Free
+                        </Link>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* MENU BUTTON (Always visible) */}
             <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
@@ -291,8 +367,8 @@ export default function Navbar() {
 
       {/* TOAST POPUP NOTIFICATION (Triggered on new message) */}
       <AnimatePresence>
-      {toastAlert && user && (
-        <motion.div
+        {toastAlert && user && (
+          <motion.div
             initial={{ opacity: 0, x: 50, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -327,8 +403,9 @@ export default function Navbar() {
   );
 }
 
+/* ===================== */
 /* SUB-COMPONENTS        */
-
+/* ===================== */
 
 function NavTrigger({ label, id, activeMenu, setMenu }: any) {
   return (
@@ -389,7 +466,6 @@ function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
-  // --- ADD THIS: Access current user state ---
   const [user, setUser] = useState<any>(null);
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -397,7 +473,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/"; // Refresh to clear admin state
+    window.location.href = "/";
   };
 
   return (
@@ -443,36 +519,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               </SidebarSection>
 
               <SidebarLink href="/team" icon={<Users size={20} />} label="Our Team" onClick={onClose} />
-              
-              {/* Added Comments to Sidebar */}
               <SidebarLink href="/comments" icon={<MessageSquare size={20} />} label="Comments" onClick={onClose} />
-              
               <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
-
             </div>
-
-            {/* --- CHANGE 1: ADD LOGIN/LOGOUT BUTTON --- */}
-            <div className="pt-6 mt-6 border-t border-slate-100">
-              {user ? (
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors group"
-                >
-                  <Lock size={20} />
-                  <span className="font-bold uppercase text-[11px] tracking-wider">Logout Admin</span>
-                </button>
-              ) : (
-                <Link 
-                  href="/login" 
-                  onClick={onClose}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors group"
-                >
-                  <Lock size={20} />
-                  <span className="font-bold uppercase text-[11px] tracking-wider">Admin Login</span>
-                </Link>
-              )}
-            </div>
-          
 
             <div className="mt-8 p-8 border-t border-slate-100 bg-slate-50 text-center">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-loose">
