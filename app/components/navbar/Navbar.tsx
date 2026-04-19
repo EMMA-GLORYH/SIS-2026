@@ -151,8 +151,8 @@ export default function Navbar() {
           
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-4 group">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-lg md:text-xl shadow-lg transition-transform group-hover:rotate-12">
-              SIS
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white text-[#002147] flex items-center justify-center font-black text-lg md:text-xl shadow-lg transition-transform group-hover:rotate-12">
+              NGI
             </div>
             <div className="hidden sm:flex flex-col">
               <span className="text-sm md:text-base font-black tracking-tight leading-none uppercase">Solutions & ICT</span>
@@ -164,7 +164,7 @@ export default function Navbar() {
           <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
             <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
             <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
-            <NavTrigger label="About SIS" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
+            <NavTrigger label="About NGI" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
             <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
             <Link href="/comments" className="hover:text-blue-400 transition-colors">Comments</Link>
             <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
@@ -432,7 +432,7 @@ function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) 
       <div className="max-w-7xl mx-auto flex min-h-[400px]">
         <div className="w-1/3 bg-slate-50 p-12 border-r border-slate-100 flex flex-col justify-between">
           <div>
-            <div className="w-14 h-14 bg-[#002147] rounded-xl flex items-center justify-center text-white font-black text-xl mb-6">SIS</div>
+            <div className="w-14 h-14 bg-[#002147] rounded-xl flex items-center justify-center text-white font-black text-xl mb-6">NGI</div>
             <h2 className="text-2xl font-black text-[#002147] uppercase tracking-tighter mb-4">{data.title}</h2>
             <p className="text-slate-500 leading-relaxed text-sm font-medium">{data.tagline}</p>
           </div>
@@ -488,7 +488,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           >
             <div className="bg-[#002147] text-white p-8">
               <div className="flex items-center justify-between mb-8">
-                <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">SIS</div>
+                <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">NGI</div>
                 <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><X size={24} /></button>
               </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Menu</h2>
@@ -509,7 +509,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               </SidebarSection>
 
               <SidebarSection
-                icon={<Info size={20} />} label="About SIS"
+                icon={<Info size={20} />} label="About NGI"
                 expanded={expandedSection === "about"}
                 onToggle={() => setExpandedSection(expandedSection === "about" ? null : "about")}
               >
