@@ -30,7 +30,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-10 md:gap-12 items-center">
           <motion.div {...fadeIn}>
             <nav className="flex items-center gap-2 text-blue-400 font-bold text-xs mb-6 uppercase tracking-[0.3em]">
-              <Link href="/">Home</Link> <ChevronRight size={12} /> <span className="text-white">About SIS</span>
+              <Link href="/">Home</Link> <ChevronRight size={12} /> <span className="text-white">About NGI</span>
             </nav>
             <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter mb-8 leading-[0.9]">
               Great Technology <br /> 
@@ -38,7 +38,7 @@ export default function AboutPage() {
             </h1>
             <p className="text-lg md:text-xl text-blue-100/70 leading-relaxed font-medium max-w-xl">
               We help schools and businesses grow by building smart, easy-to-use digital tools. 
-              At SIS, we handle the complex tech so you can focus on your work.
+              At NGI, we handle the complex tech so you can focus on your work.
             </p>
           </motion.div>
 
@@ -49,7 +49,7 @@ export default function AboutPage() {
                 <Image src="/images/team/lead.jpg" alt="Team Lead" fill className="object-cover" onError={() => setImageError(true)} />
               ) : (
                 <div className="h-full flex flex-col items-center justify-center bg-slate-800">
-                  <span className="text-6xl font-black text-white/10">SIS</span>
+                  <span className="text-6xl font-black text-white/10">NGI</span>
                 </div>
               )}
               <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#002147] to-transparent">
@@ -76,7 +76,7 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-6 text-lg text-slate-600 leading-relaxed">
                 <p>
-                  Started in 2023, **SIS Team** was built to solve a simple problem: most technology is too 
+                  Started in 2023, **NGI Team** was built to solve a simple problem: most technology is too 
                   complicated for the average user. We believe that your website or school portal should 
                   work perfectly every time, without you needing to be a "tech expert."
                 </p>
@@ -186,7 +186,7 @@ export default function AboutPage() {
           <motion.div {...fadeIn} className="relative z-10">
             <h2 className="text-3xl md:text-6xl font-black text-white mb-8 tracking-tighter">Let's Build Something.</h2>
             <p className="text-blue-100 text-lg md:text-xl mb-12 max-w-2xl mx-auto opacity-80">
-              Stop struggling with slow systems. Contact the SIS Team and let us 
+              Stop struggling with slow systems. Contact the NGI Team and let us 
               bring your business into the digital future today.
             </p>
             <Link 

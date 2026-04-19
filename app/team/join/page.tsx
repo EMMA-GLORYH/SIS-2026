@@ -17,7 +17,7 @@ export default function CareerJoinPage() {
     personal: { fullName: "", email: "", location: "", phone: "" },
     expertise: { discipline: "Frontend Engineering", years: "", stack: "" },
     work: { github: "", portfolio: "", linkedin: "" },
-    intent: { whySis: "" }
+    intent: { whyNGI: "" }
   });
 
   const totalSteps = 4;
@@ -36,7 +36,7 @@ export default function CareerJoinPage() {
       return formData.work.linkedin !== "";
     }
     if (step === 4) {
-      return formData.intent.whySis.length > 20;
+      return formData.intent.whyNGI.length > 20;
     }
     return true;
   };
@@ -139,7 +139,7 @@ export default function CareerJoinPage() {
 
               {step === 4 && (
                 <FormStep key="step4" title="Final Words" icon={<GraduationCap size={20}/>}>
-                  <Textarea label="Why join SIS Solutions?" value={formData.intent.whySis} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, intent: {...formData.intent, whySis: e.target.value}})} placeholder="Tell us about your motivation..." rows={5} required />
+                  <Textarea label="Why join NGI Solutions?" value={formData.intent.whyNGI} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, intent: {...formData.intent, whyNGI: e.target.value}})} placeholder="Tell us about your motivation..." rows={5} required />
                 </FormStep>
               )}
             </AnimatePresence>
