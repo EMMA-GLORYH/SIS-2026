@@ -14,6 +14,7 @@ import {
   Star as StarIcon 
 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069",
@@ -22,8 +23,8 @@ const HERO_IMAGES = [
 ];
 
 const TECH_STACK = [
-  { name: "Next.js", logo: "https://cdn.simpleicons.org/nextdotjs/black" },
-  { name: "AWS", logo: "https://cdn.simpleicons.org/amazonaws/232F3E" },
+  { name: "Next.js", logo: "https://cdn.simpleicons.org/nextdotjs/000000" },
+  { name: "AWS", logo: "https://cdn.simpleicons.org/amazonwebservices/232F3E" },
   { name: "React", logo: "https://cdn.simpleicons.org/react/61DAFB" },
   { name: "TypeScript", logo: "https://cdn.simpleicons.org/typescript/3178C6" },
   { name: "Python", logo: "https://cdn.simpleicons.org/python/3776AB" },
@@ -31,6 +32,17 @@ const TECH_STACK = [
   { name: "PostgreSQL", logo: "https://cdn.simpleicons.org/postgresql/4169E1" },
   { name: "Docker", logo: "https://cdn.simpleicons.org/docker/2496ED" },
 ];
+
+/* ===================== */
+/* TYPES                 */
+/* ===================== */
+interface Comment {
+  id: string;
+  name: string;
+  message: string;
+  rating: number | null;
+  created_at: string;
+}
 
 export default function HomePage() {
   return (
@@ -233,12 +245,38 @@ function InstitutionalServices() {
 }
 
 
-/* 4. TESTIMONIALS */
+/* ===================== */
+/* 4. TESTIMONIALS       */
+/* ===================== */
 function Testimonials() {
-  const reviews = [
-    { name: "Principal, St. Andrews", text: "The school portal reduced our admin workload by 60%. Essential for modern education.", rating: 5 },
-    { name: "NGO Director", text: "Secure, reliable, and highly professional. The team at SIS understands institutional needs.", rating: 5 }
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("id, name, message, rating, created_at")
+        .eq("is_reviewed", true)
+        .eq("is_visible", true)
+        .order("created_at", { ascending: false });
+
+      if (data && data.length > 0) {
+        setComments(data);
+      }
+      setLoading(false);
+    };
+
+    fetchComments();
+  }, []);
+
+  // Fallback reviews shown while loading or if no approved comments yet
+  const fallbackReviews = [
+    { name: "Principal, St. Andrews", message: "The school portal reduced our admin workload by 60%. Essential for modern education.", rating: 5 },
+    { name: "NGO Director", message: "Secure, reliable, and highly professional. The team at SIS understands institutional needs.", rating: 5 }
   ];
+
+  const reviews = comments.length > 0 ? comments : fallbackReviews;
 
   return (
     <section className="py-24 bg-slate-50 overflow-hidden">
@@ -248,33 +286,56 @@ function Testimonials() {
           <h3 className="text-4xl font-black text-[#002147] tracking-tight">Voices of Success.</h3>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {reviews.map((r, i) => (
-            <motion.div 
-              key={i}
-              whileHover={{ y: -5 }}
-              className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 relative"
-            >
-              <Quote className="absolute top-8 right-10 text-slate-100" size={60} />
-              <div className="flex gap-1 mb-6">
-                {[...Array(r.rating)].map((_, i) => (
-                  <StarIcon key={i} size={14} className="fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8 relative z-10 italic">
-                "{r.text}"
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {r.name[0]}
+        {loading ? (
+          // Skeleton loader — matches card design
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 animate-pulse">
+                <div className="flex gap-1 mb-6">
+                  {[...Array(5)].map((_, j) => (
+                    <div key={j} className="w-3 h-3 rounded-full bg-slate-100" />
+                  ))}
                 </div>
-                <span className="font-black text-[#002147] text-sm uppercase tracking-wider">{r.name}</span>
+                <div className="space-y-3 mb-8">
+                  <div className="h-4 bg-slate-100 rounded-full w-full" />
+                  <div className="h-4 bg-slate-100 rounded-full w-4/5" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-slate-100 rounded-full" />
+                  <div className="h-3 bg-slate-100 rounded-full w-32" />
+                </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            {reviews.map((r, i) => (
+              <motion.div 
+                key={i}
+                whileHover={{ y: -5 }}
+                className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 relative"
+              >
+                <Quote className="absolute top-8 right-10 text-slate-100" size={60} />
+                <div className="flex gap-1 mb-6">
+                  {[...Array(r.rating ?? 5)].map((_, j) => (
+                    <StarIcon key={j} size={14} className="fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8 relative z-10 italic">
+                  "{r.message}"
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                    {r.name[0].toUpperCase()}
+                  </div>
+                  <span className="font-black text-[#002147] text-sm uppercase tracking-wider">{r.name}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-        {/* --- NEW NAVIGATION BUTTON --- */}
+        {/* --- NAVIGATION BUTTON --- */}
         <div className="flex flex-col items-center justify-center space-y-6">
           <div className="h-px w-24 bg-slate-200" />
           <Link href="/comments">
