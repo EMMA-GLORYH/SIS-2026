@@ -166,7 +166,7 @@ export default function Navbar() {
             <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
             <NavTrigger label="About NGI" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
             <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
-            <Link href="/comments" className="hover:text-blue-400 transition-colors">Comments</Link>
+            <Link href="/comments" className="hover:text-blue-400 transition-colors">Comment</Link>
             <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
           </nav>
 
