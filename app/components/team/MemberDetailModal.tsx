@@ -8,7 +8,7 @@ import {
   ArrowRight, Cpu, Globe, Zap, Mail, Linkedin,
   Github, Twitter, Facebook, Instagram, Video, Users
 } from "lucide-react";
-import { TeamMember } from "@/types/team";
+import { TeamMember } from "@/app/types/team";
 
 interface ModalProps {
   member: TeamMember;
