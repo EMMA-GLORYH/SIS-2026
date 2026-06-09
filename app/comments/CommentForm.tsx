@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, User, AlignLeft, Star, CheckCircle2, ArrowRight } from "lucide-react";
+import Button from "@/app/components/ui/Button";
 
 export default function CommentForm() {
   const [rating, setRating] = useState(0);
@@ -87,15 +88,16 @@ export default function CommentForm() {
             </div>
           </div>
 
-          <motion.button 
+          <Button
             type="submit"
             disabled={isLoading}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`w-full py-5 ${isLoading ? 'bg-slate-400' : 'bg-[#002147]'} text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl`}
+            variant="primary"
+            size="md"
+            fullWidth
+            className="gap-3"
           >
             {isLoading ? "Sending..." : "Submit Review"} <Send size={16} />
-          </motion.button>
+          </Button>
         </motion.form>
       ) : (
         <motion.div 
@@ -110,12 +112,15 @@ export default function CommentForm() {
           </div>
           <h2 className="text-2xl font-black text-slate-900 mb-3">Thank you for your comment!</h2>
           <p className="text-slate-500 text-sm mb-8 max-w-xs mx-auto">Your feedback has been received and sent to our executive team for review.</p>
-          <button 
+          <Button
+            type="button"
             onClick={() => setIsSubmitted(false)}
-            className="px-8 py-4 bg-[#002147] text-white rounded-2xl font-bold flex items-center justify-center gap-2 mx-auto hover:bg-blue-600 transition-all"
+            variant="primary"
+            size="md"
+            className="gap-2 mx-auto"
           >
             Okay <ArrowRight size={18} />
-          </button>
+          </Button>
         </motion.div>
       )}
     </AnimatePresence>

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import Button from "@/app/components/ui/Button";
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069",
@@ -44,12 +45,20 @@ interface Comment {
   created_at: string;
 }
 
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+}
+
 export default function HomePage() {
   return (
     <main className="bg-white overflow-x-hidden">
       <HeroSlider />
       <TechStackStrip />
       <InstitutionalServices />
+      <LatestNews />
       <Testimonials />
     </main>
   );
@@ -246,11 +255,82 @@ function InstitutionalServices() {
 
 
 /* ===================== */
-/* 4. TESTIMONIALS       */
+/* 4. LATEST NEWS        */
+/* ===================== */
+function LatestNews() {
+  const [news, setNews] = useState<NewsItem | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatestNews = async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("id, title, content, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error("Latest news load error:", error.message);
+      } else if (data && data.length > 0) {
+        setNews(data[0]);
+      }
+      setLoading(false);
+    };
+
+    fetchLatestNews();
+  }, []);
+
+  return (
+    <section className="py-20 bg-white border-t border-slate-100">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-10">
+          <div>
+            <p className="text-blue-600 text-xs font-black uppercase tracking-[0.3em] mb-3">Latest Update</p>
+            <h3 className="text-3xl md:text-4xl font-black text-[#002147] tracking-tight">Stay informed with the latest announcement.</h3>
+          </div>
+          <Link href="/news">
+            <Button variant="outline" size="md">More News</Button>
+          </Link>
+        </div>
+
+        <div className="rounded-[2.5rem] border border-slate-200 bg-slate-50 p-8 md:p-12 shadow-sm">
+          {loading ? (
+            <div className="space-y-4">
+              <div className="h-6 bg-slate-200 rounded-full w-1/3 animate-pulse" />
+              <div className="h-4 bg-slate-200 rounded-full w-4/5 animate-pulse" />
+              <div className="h-4 bg-slate-200 rounded-full w-full animate-pulse" />
+              <div className="h-4 bg-slate-200 rounded-full w-5/6 animate-pulse" />
+            </div>
+          ) : news ? (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                <div>
+                  <h4 className="text-2xl font-black text-[#002147] mb-2">{news.title}</h4>
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Published {new Date(news.created_at).toLocaleDateString()}</p>
+                </div>
+                <Link href="/news" className="text-blue-600 uppercase text-[11px] tracking-[0.3em] font-bold hover:text-blue-700">
+                  Read more
+                </Link>
+              </div>
+              <p className="text-slate-600 leading-relaxed text-base md:text-lg">{news.content}</p>
+            </>
+          ) : (
+            <p className="text-slate-500">No news is available at the moment. Check back soon for updates.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+/* ===================== */
+/* 5. TESTIMONIALS       */
 /* ===================== */
 function Testimonials() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -270,13 +350,16 @@ function Testimonials() {
     fetchComments();
   }, []);
 
-  // Fallback reviews shown while loading or if no approved comments yet
   const fallbackReviews = [
     { name: "Principal, St. Andrews", message: "The school portal reduced our admin workload by 60%. Essential for modern education.", rating: 5 },
     { name: "NGO Director", message: "Secure, reliable, and highly professional. The team at SIS understands institutional needs.", rating: 5 }
   ];
 
   const reviews = comments.length > 0 ? comments : fallbackReviews;
+  const sliderReviews = reviews.length > 1 ? [...reviews, ...reviews] : reviews;
+
+  const handlePause = () => setIsPaused(true);
+  const handleResume = () => setIsPaused(false);
 
   return (
     <section className="py-24 bg-slate-50 overflow-hidden">
@@ -286,73 +369,61 @@ function Testimonials() {
           <h3 className="text-4xl font-black text-[#002147] tracking-tight">Voices of Success.</h3>
         </div>
 
-        {loading ? (
-          // Skeleton loader — matches card design
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            {[1, 2].map((i) => (
-              <div key={i} className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 animate-pulse">
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, j) => (
-                    <div key={j} className="w-3 h-3 rounded-full bg-slate-100" />
+        <div className="relative overflow-hidden rounded-[3rem] border border-slate-200 bg-white shadow-sm">
+          <div
+            className={`flex gap-6 px-6 py-8 items-stretch whitespace-nowrap animate-testimonial-marquee ${isPaused ? "pause-animation" : ""}`}
+            onPointerDown={handlePause}
+            onPointerUp={handleResume}
+            onPointerLeave={handleResume}
+            onMouseEnter={handlePause}
+            onMouseLeave={handleResume}
+          >
+            {sliderReviews.map((r, i) => (
+              <div key={`${r.name}-${i}`} className="min-w-[320px] max-w-[320px] flex-shrink-0 bg-slate-50 rounded-[2rem] p-8 shadow-sm border border-slate-100">
+                <div className="flex gap-2 mb-4 text-amber-500">
+                  {[...Array(r.rating ?? 5)].map((_, j) => (
+                    <StarIcon key={j} size={16} className="fill-current" />
                   ))}
                 </div>
-                <div className="space-y-3 mb-8">
-                  <div className="h-4 bg-slate-100 rounded-full w-full" />
-                  <div className="h-4 bg-slate-100 rounded-full w-4/5" />
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-100 rounded-full" />
-                  <div className="h-3 bg-slate-100 rounded-full w-32" />
+                <p className="text-slate-600 text-base leading-relaxed mb-8 italic">"{r.message}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black">
+                    {r.name[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-[#002147] uppercase tracking-[0.15em]">{r.name}</p>
+                    <p className="text-[11px] text-slate-400 uppercase tracking-[0.3em]">Touch to pause</p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            {reviews.map((r, i) => (
-              <motion.div 
-                key={i}
-                whileHover={{ y: -5 }}
-                className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 relative"
-              >
-                <Quote className="absolute top-8 right-10 text-slate-100" size={60} />
-                <div className="flex gap-1 mb-6">
-                  {[...Array(r.rating ?? 5)].map((_, j) => (
-                    <StarIcon key={j} size={14} className="fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-lg text-slate-600 font-medium leading-relaxed mb-8 relative z-10 italic">
-                  "{r.message}"
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
-                    {r.name[0].toUpperCase()}
-                  </div>
-                  <span className="font-black text-[#002147] text-sm uppercase tracking-wider">{r.name}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+        </div>
 
-        {/* --- NAVIGATION BUTTON --- */}
-        <div className="flex flex-col items-center justify-center space-y-6">
+        <div className="mt-12 flex flex-col items-center justify-center space-y-6">
           <div className="h-px w-24 bg-slate-200" />
           <Link href="/comments">
-            <motion.button
-              whileHover={{ scale: 1.05, gap: "1.5rem" }}
-              whileTap={{ scale: 0.95 }}
-              className="group flex items-center gap-4 bg-white border-2 border-[#002147] text-[#002147] px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-[#002147] hover:text-white transition-all duration-300"
-            >
-              Share Your Experience
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </motion.button>
+            <Button variant="outline" size="md" className="gap-3">
+              View all testimonials
+              <ArrowRight size={18} />
+            </Button>
           </Link>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Help us improve our institutional services
-          </p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tap and hold to pause the slider; release to continue.</p>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes testimonial-marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-testimonial-marquee {
+          animation: testimonial-marquee 28s linear infinite;
+        }
+        .pause-animation {
+          animation-play-state: paused;
+        }
+      `}</style>
     </section>
   );
 }

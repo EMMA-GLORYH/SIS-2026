@@ -6,6 +6,7 @@ import {
   User, Briefcase, Mail, Linkedin, Github, 
   Globe, Send, Code, GraduationCap, CheckCircle2, ChevronRight, ChevronLeft, AlertCircle
 } from "lucide-react";
+import Button from "@/app/components/ui/Button";
 
 export default function CareerJoinPage() {
   const [step, setStep] = useState(1);
@@ -154,19 +155,19 @@ export default function CareerJoinPage() {
             {/* NAVIGATION */}
             <div className="mt-8 md:mt-12 pt-6 border-t border-slate-50 flex justify-between items-center">
               {step > 1 ? (
-                <button type="button" onClick={handleBack} className="text-xs md:text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1">
+                <Button type="button" variant="ghost" size="sm" onClick={handleBack} className="text-xs md:text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1">
                   <ChevronLeft size={16} /> Back
-                </button>
+                </Button>
               ) : <div />}
 
               {step < totalSteps ? (
-                <button type="button" onClick={handleNext} className="bg-blue-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-base flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+                <Button type="button" variant="primary" size="md" onClick={handleNext} className="gap-2">
                   Next Step <ChevronRight size={18} />
-                </button>
+                </Button>
               ) : (
-                <button type="submit" disabled={loading} className="bg-[#002147] text-white px-8 md:px-12 py-3 md:py-4 rounded-xl font-bold text-sm md:text-base flex items-center gap-2 hover:bg-blue-600 transition-all shadow-xl">
+                <Button type="submit" disabled={loading} variant="primary" size="md" className="gap-2">
                   {loading ? "Sending..." : "Submit"} <Send size={18} />
-                </button>
+                </Button>
               )}
             </div>
           </form>

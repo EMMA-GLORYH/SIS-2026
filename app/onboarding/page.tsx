@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Building, ArrowRight, Loader2 } from "lucide-react";
+import Button from "@/app/components/ui/Button";
 
 export default function OnboardingPage() {
   const [orgName, setOrgName] = useState("");
@@ -80,13 +81,17 @@ export default function OnboardingPage() {
             />
           </div>
 
-          <button 
+          <Button
+            type="submit"
             disabled={loading || !orgName}
-            className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+            variant="primary"
+            size="md"
+            fullWidth
+            className="gap-2"
           >
-            {loading ? "Saving..." : "Finish Setup"} 
+            {loading ? "Saving..." : "Finish Setup"}
             <ArrowRight size={18} />
-          </button>
+          </Button>
         </form>
       </div>
     </div>

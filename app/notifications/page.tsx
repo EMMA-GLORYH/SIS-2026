@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trash2, CheckCircle, Clock, User, 
@@ -9,6 +10,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { isSupportUser } from "@/lib/support";
+import Button from "@/app/components/ui/Button";
 
 interface AppComment {
   id: string;
@@ -22,6 +25,7 @@ interface AppComment {
 }
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [comments, setComments] = useState<AppComment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +40,28 @@ export default function NotificationsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchComments(); }, []);
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user || !isSupportUser(session.user.email)) {
+        router.replace("/news");
+        return;
+      }
+      fetchComments();
+    };
+
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session?.user || !isSupportUser(session?.user?.email)) {
+        router.replace("/news");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   const toggleVisibility = async (id: string, currentStatus: boolean) => {
     const { error } = await supabase
@@ -72,9 +97,9 @@ export default function NotificationsPage() {
             </Link>
             <h1 className="text-xl font-black text-[#002147] tracking-tight uppercase">Comment Management</h1>
           </div>
-          <button onClick={fetchComments} className="flex items-center gap-2 bg-[#002147] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-900 transition-all">
+          <Button onClick={fetchComments} variant="primary" size="sm" className="gap-2" disabled={loading}>
             <RefreshCcw size={14} className={loading ? "animate-spin" : ""} /> Sync
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -127,16 +152,15 @@ export default function NotificationsPage() {
 
                   {/* VISIBILITY TOGGLE */}
                   <div className="col-span-2 flex justify-center">
-                    <button 
+                    <Button
+                      type="button"
                       onClick={() => toggleVisibility(comment.id, comment.is_visible)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all border ${
-                        comment.is_visible 
-                        ? 'bg-green-50 text-green-700 border-green-200 shadow-sm' 
-                        : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'
-                      }`}
+                      variant={comment.is_visible ? "secondary" : "outline"}
+                      size="sm"
+                      className={`gap-2 uppercase tracking-tighter ${comment.is_visible ? 'bg-green-50 text-green-700 border-green-200 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'}`}
                     >
-                      {comment.is_visible ? <><Eye size={12}/> Public</> : <><EyeOff size={12}/> Hidden</>}
-                    </button>
+                      {comment.is_visible ? <><Eye size={12} /> Public</> : <><EyeOff size={12} /> Hidden</>}
+                    </Button>
                   </div>
 
                   {/* ACTION BUTTONS */}
@@ -150,13 +174,16 @@ export default function NotificationsPage() {
                         <CheckCircle size={18} />
                       </button>
                     )}
-                    <button 
+                    <Button 
+                      type="button"
                       onClick={() => deleteComment(comment.id)}
+                      variant="ghost"
+                      size="icon"
                       className="p-2.5 text-red-400 hover:bg-red-50 rounded-xl transition-all"
                       title="Delete"
                     >
                       <Trash2 size={18} />
-                    </button>
+                    </Button>
                   </div>
 
                 </div>

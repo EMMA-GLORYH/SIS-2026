@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, CheckCircle2, AlertCircle, MapPin, Briefcase, Clock } from "lucide-react";
+import Button from "@/app/components/ui/Button";
 
 // Main Export
 export default function ServiceRequestForm() {
@@ -156,13 +157,16 @@ function FormFields() {
         </div>
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={status === "sending"}
-        className="w-full bg-[#002147] hover:bg-blue-600 text-white font-black px-8 py-6 rounded-2xl transition-all shadow-2xl flex items-center justify-center gap-4 uppercase text-sm tracking-[0.3em] disabled:opacity-50"
+        variant="primary"
+        size="md"
+        fullWidth
+        className="gap-4"
       >
         {status === "sending" ? "Processing..." : "Authorize Request"}
-      </button>
+      </Button>
 
       <AnimatePresence>
         {status === "error" && (

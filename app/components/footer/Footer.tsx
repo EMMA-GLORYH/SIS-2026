@@ -2,6 +2,7 @@ import Link from "next/link";
 import { NAVIGATION } from "@/app/data/navigation";
 import { FaFacebookF, FaXTwitter, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { Mail, ShieldCheck } from "lucide-react";
+import Button from "@/app/components/ui/Button";
 
 export default function Footer() {
   const { footer } = NAVIGATION;
@@ -81,9 +82,9 @@ export default function Footer() {
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-xs focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
               />
             </div>
-            <button className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs transition-all active:scale-[0.98]">
+            <Button variant="primary" size="sm" fullWidth className="mt-3">
               Subscribe
-            </button>
+            </Button>
           </div>
         </div>
 

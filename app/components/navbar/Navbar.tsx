@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,13 +10,9 @@ import {
   Award, Globe, ShieldCheck, Cpu, Zap, Lock, CheckCircle2, LogIn, LogOut, UserPlus, User
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { isSupportUser } from "@/lib/support";
+import Button from "../ui/Button";
 
-const SUPPORT_EMAILS = process.env.NEXT_PUBLIC_SUPPORT_EMAILS
-  ? process.env.NEXT_PUBLIC_SUPPORT_EMAILS.split(",").map((email) => email.trim().toLowerCase()).filter(Boolean)
-  : [];
-
-const isSupportUser = (email?: string | null) =>
-  !!email && SUPPORT_EMAILS.includes(email.toLowerCase());
 
 /* DATA CONFIGURATION    */
 
@@ -60,91 +56,90 @@ export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   
   // Navigation State
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Notification State
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [toastAlert, setToastAlert] = useState<AppNotification | null>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
-    // --- 1. INITIAL DATA FETCHING ---
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-    };
+    const fetchNotificationCount = async (email?: string | null) => {
+      if (isSupportUser(email)) {
+        const { count, error } = await supabase
+          .from("comments")
+          .select("id", { count: "exact", head: true })
+          .eq("is_reviewed", false);
 
-    const fetchLatestMessages = async () => {
-      const { data, error } = await supabase
-        .from("comments")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(d => !d.is_reviewed).length);
+        setNotificationCount(count ?? 0);
+        if (error) console.warn("Error fetching admin notification count:", error.message);
+        return;
       }
+
+      const { count, error } = await supabase
+        .from("news")
+        .select("id", { count: "exact", head: true });
+
+      setNotificationCount(count ?? 0);
+      if (error) console.warn("Error fetching news count:", error.message);
     };
 
-    checkUser();
-    fetchLatestMessages();
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      await fetchNotificationCount(currentUser?.email ?? null);
+    };
 
-    // --- 2. AUTH SESSION LISTENER ---
-    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      
-      if (event === 'SIGNED_OUT') {
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      fetchNotificationCount(currentUser?.email ?? null);
+      if (event === "SIGNED_OUT") {
         setShowProfileDropdown(false);
-        setShowNotifications(false);
-        router.refresh();
       }
     });
 
-    // --- 3. REAL-TIME NOTIFICATIONS CHANNEL ---
-    const channel = supabase
-      .channel("realtime-messages")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "comments" },
-        (payload) => {
-          const newMsg = payload.new as AppNotification;
-          
-          setNotifications((prev) => [newMsg, ...prev].slice(0, 5));
-          setUnreadCount((prev) => prev + 1);
-          
-          setToastAlert(newMsg);
-          setTimeout(() => setToastAlert(null), 5000);
-        }
-      )
-      .subscribe();
-
-    // --- 4. UI EVENT HANDLERS ---
-    const handleScroll = () => { 
-      setOpenMenu(null); 
-      setShowNotifications(false); 
+    const handleScroll = () => {
+      setOpenMenu(null);
       setShowProfileDropdown(false);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
-    // --- 5. CLEANUP (One consolidated return) ---
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      supabase.removeChannel(channel);
-      authSubscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, [router]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        showProfileDropdown &&
+        profileButtonRef.current &&
+        dropdownRef.current &&
+        !profileButtonRef.current.contains(target) &&
+        !dropdownRef.current.contains(target)
+      ) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    window.addEventListener("click", handleOutsideClick, true);
+    return () => window.removeEventListener("click", handleOutsideClick, true);
+  }, [showProfileDropdown]);
 
   // Logout Functionality
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setShowProfileDropdown(false);
-    router.push("/");
-    router.refresh();
+    router.replace("/");
   };
 
   return (
@@ -179,91 +174,32 @@ export default function Navbar() {
           {/* ACTIONS */}
           <div className="flex items-center gap-3 relative">
 
-            {/* NOTIFICATION BELL — only shown when support users are logged in */}
-            {user && isSupportUser(user.email) && (
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setShowNotifications(!showNotifications);
-                    setShowProfileDropdown(false);
-                  }}
-                  className="relative flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all active:scale-95"
-                >
-                  <Bell size={18} />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-black flex items-center justify-center border border-[#002147]">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </button>
+            {/* NOTIFICATION BELL — counts admin notifications for support users, otherwise news items */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  const destination = user && isSupportUser(user.email) ? "/notifications" : "/news";
+                  router.push(destination);
+                }}
+                className="relative flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all active:scale-95"
+              >
+                <Bell size={18} />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-black flex items-center justify-center border border-[#002147]">
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </span>
+                )}
+              </button>
+            </div>
 
-                <AnimatePresence>
-                  {showNotifications && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
-                    >
-                      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                        <h4 className="text-[10px] font-black text-[#002147] uppercase tracking-widest">Updates & Notifications</h4>
-                        {unreadCount > 0 && (
-                          <span className="text-[9px] font-bold bg-red-50 text-red-500 px-2 py-0.5 rounded-full">
-                            {unreadCount} new
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
-                        {notifications.length === 0 ? (
-                          <div className="p-6 text-center">
-                            <Bell size={28} className="text-slate-200 mx-auto mb-2" />
-                            <p className="text-xs text-slate-400 font-medium">No notifications yet</p>
-                          </div>
-                        ) : (
-                          notifications.map((n) => (
-                            <div
-                              key={n.id}
-                              className={`flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${!n.is_reviewed ? 'bg-blue-50/40' : ''}`}
-                            >
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                                <MessageSquare size={14} className="text-blue-600" />
-                              </div>
-                              <div className="overflow-hidden">
-                                <p className="text-[11px] font-black text-[#002147] truncate">{n.client_name}</p>
-                                <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{n.message}</p>
-                                <p className="text-[9px] text-slate-300 font-medium mt-1">
-                                  {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                </p>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-
-                      <div className="px-4 py-3 border-t border-slate-100">
-                        <Link
-                          href="/notifications"
-                          onClick={() => setShowNotifications(false)}
-                          className="flex items-center justify-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
-                        >
-                          View All Updates <ArrowRight size={12} />
-                        </Link>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
-
-            {/* PROFILE DROPDOWN SYSTEM — hover to open, hover-leave to close */}
-            <div
-              className="relative"
-              onMouseEnter={() => setShowProfileDropdown(true)}
-              onMouseLeave={() => setShowProfileDropdown(false)}
-            >
-              <button 
-                className="flex items-center gap-2 bg-white/10 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+            {/* PROFILE DROPDOWN SYSTEM — click to open and scroll/click-outside hides it */}
+            <div className="relative">
+              <Button
+                ref={profileButtonRef}
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowProfileDropdown((current) => !current)}
+                className="relative flex items-center gap-2 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
               >
                 {user ? (
                   <div className="relative">
@@ -284,7 +220,7 @@ export default function Navbar() {
                   </div>
                 )}
                 <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
-              </button>
+              </Button>
 
               <AnimatePresence>
                 {showProfileDropdown && (
@@ -318,16 +254,15 @@ export default function Navbar() {
                           </div>
                         )}
 
-                        <button 
-                          onClick={async () => {
-                            await supabase.auth.signOut();
-                            router.push("/");
-                            router.refresh();
-                          }}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 text-red-500 font-bold text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          fullWidth
+                          onClick={handleLogout}
+                          className="flex items-center justify-center gap-2"
                         >
                           <LogOut size={14} /> Sign Out
-                        </button>
+                        </Button>
                       </div>
                     ) : (
                       /* GUEST VIEW */
@@ -353,10 +288,10 @@ export default function Navbar() {
             </div>
 
             {/* MENU BUTTON (Always visible) */}
-            <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-full font-bold shadow-lg transition-all active:scale-95">
+            <Button onClick={() => setSidebarOpen(true)} variant="primary" size="sm" className="flex items-center gap-2">
               <Menu size={18} />
               <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -370,39 +305,6 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </header>
-
-      {/* TOAST POPUP NOTIFICATION (Triggered on new message) */}
-      <AnimatePresence>
-        {toastAlert && user && (
-          <motion.div
-            initial={{ opacity: 0, x: 50, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed bottom-6 right-6 w-80 bg-white rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,33,71,0.2)] border border-slate-100 p-4 z-[200] cursor-pointer group"
-            onClick={() => {
-              setToastAlert(null);
-              router.push('/notifications');
-            }}
-          >
-            <button 
-              onClick={(e) => { e.stopPropagation(); setToastAlert(null); }}
-              className="absolute top-2 right-2 p-1 text-slate-300 hover:text-slate-500 transition-colors"
-            >
-              <X size={14} />
-            </button>
-            <div className="flex gap-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center shrink-0">
-                <MessageSquare size={18} className="text-blue-600" />
-              </div>
-              <div>
-                <h4 className="text-[11px] font-black text-[#002147] uppercase tracking-wider mb-1">New Message Received</h4>
-                <p className="text-xs text-slate-600 font-medium mb-1">From: <span className="font-bold">{toastAlert.client_name}</span></p>
-                <p className="text-[11px] text-slate-400 line-clamp-1 italic">"{toastAlert.message}"</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>
@@ -470,6 +372,7 @@ function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) 
 /* ===================== */
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const router = useRouter();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
   const [user, setUser] = useState<any>(null);
@@ -479,7 +382,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    router.replace("/");
   };
 
   return (
@@ -495,7 +398,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             <div className="bg-[#002147] text-white p-8">
               <div className="flex items-center justify-between mb-8">
                 <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">NGI</div>
-                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><X size={24} /></button>
+                <Button onClick={onClose} variant="icon" size="icon" className="p-2 hover:bg-white/10">
+                  <X size={24} />
+                </Button>
               </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Menu</h2>
               <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-2">Simple Technology. Powerful Results.</p>
@@ -527,6 +432,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
               <SidebarLink href="/team" icon={<Users size={20} />} label="Our Team" onClick={onClose} />
               <SidebarLink href="/comments" icon={<MessageSquare size={20} />} label="Comments" onClick={onClose} />
               <SidebarLink href="/contact" icon={<Mail size={20} />} label="Contact" onClick={onClose} />
+              {user && isSupportUser(user.email) && (
+                <SidebarLink href="/admin" icon={<Briefcase size={20} />} label="Admin Portal" onClick={onClose} />
+              )}
             </div>
 
             <div className="mt-8 p-8 border-t border-slate-100 bg-slate-50 text-center">
@@ -553,13 +461,13 @@ function SidebarLink({ href, icon, label, onClick }: any) {
 function SidebarSection({ icon, label, expanded, onToggle, children }: any) {
   return (
     <div>
-      <button onClick={onToggle} className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors group text-left">
+      <Button onClick={onToggle} variant="ghost" size="md" fullWidth className="justify-between text-left">
         <div className="flex items-center gap-4">
           <span className="text-blue-600">{icon}</span>
           <span className="font-bold text-slate-800 uppercase text-[11px] tracking-wider group-hover:text-blue-600">{label}</span>
         </div>
         <ChevronRight size={18} className={`transition-transform text-slate-400 ${expanded ? "rotate-90" : ""}`} />
-      </button>
+      </Button>
       <AnimatePresence>
         {expanded && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pl-12 space-y-2 mt-2 border-l-2 border-blue-100 ml-6 overflow-hidden">
