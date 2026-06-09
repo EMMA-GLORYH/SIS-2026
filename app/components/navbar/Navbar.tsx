@@ -11,6 +11,12 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+const SUPPORT_EMAILS = process.env.NEXT_PUBLIC_SUPPORT_EMAILS
+  ? process.env.NEXT_PUBLIC_SUPPORT_EMAILS.split(",").map((email) => email.trim().toLowerCase()).filter(Boolean)
+  : [];
+
+const isSupportUser = (email?: string | null) =>
+  !!email && SUPPORT_EMAILS.includes(email.toLowerCase());
 
 /* DATA CONFIGURATION    */
 
@@ -173,8 +179,8 @@ export default function Navbar() {
           {/* ACTIONS */}
           <div className="flex items-center gap-3 relative">
 
-            {/* NOTIFICATION BELL — only shown when user is logged in */}
-            {user && user.email === 'emmanuelhienwo@gmail.com' && (
+            {/* NOTIFICATION BELL — only shown when support users are logged in */}
+            {user && isSupportUser(user.email) && (
               <div className="relative">
                 <button
                   onClick={() => {
@@ -267,8 +273,8 @@ export default function Navbar() {
                       referrerPolicy="no-referrer"
                       className="w-8 h-8 rounded-full border border-blue-400 object-cover"
                     />
-                    {/* Verification Badge for Admin */}
-                    {user.email === 'emmanuelhienwo@gmail.com' && (
+                    {/* Verification badge for support team members */}
+                    {isSupportUser(user.email) && (
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#001529]" />
                     )}
                   </div>
@@ -305,10 +311,10 @@ export default function Navbar() {
                           </div>
                         </div>
 
-                        {/* Admin Badge */}
-                        {user.email === 'emmanuelhienwo@gmail.com' && (
+                        {/* Support team badge */}
+                        {isSupportUser(user.email) && (
                           <div className="mb-4 px-2 py-1 bg-blue-50 rounded-lg border border-blue-100">
-                            <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">System Administrator</p>
+                            <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">Support Team Member</p>
                           </div>
                         )}
 
