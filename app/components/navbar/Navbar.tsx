@@ -174,7 +174,7 @@ export default function Navbar() {
           {/* ACTIONS */}
           <div className="flex items-center gap-3 relative">
 
-            {/* NOTIFICATION BELL — counts admin notifications for support users, otherwise news items */}
+            {/* NOTIFICATION BELL */}
             <div className="relative">
               <button
                 onClick={() => {
@@ -192,7 +192,7 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* PROFILE DROPDOWN SYSTEM — click to open and scroll/click-outside hides it */}
+            {/* PROFILE DROPDOWN SYSTEM */}
             <div className="relative">
               <Button
                 ref={profileButtonRef}
@@ -209,7 +209,6 @@ export default function Navbar() {
                       referrerPolicy="no-referrer"
                       className="w-8 h-8 rounded-full border border-blue-400 object-cover"
                     />
-                    {/* Verification badge for support team members */}
                     {isSupportUser(user.email) && (
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#001529]" />
                     )}
@@ -247,7 +246,6 @@ export default function Navbar() {
                           </div>
                         </div>
 
-                        {/* Support team badge */}
                         {isSupportUser(user.email) && (
                           <div className="mb-4 px-2 py-1 bg-blue-50 rounded-lg border border-blue-100">
                             <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">Support Team Member</p>
@@ -287,7 +285,7 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            {/* MENU BUTTON (Always visible) */}
+            {/* MENU BUTTON */}
             <Button onClick={() => setSidebarOpen(true)} variant="primary" size="sm" className="flex items-center gap-2">
               <Menu size={18} />
               <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
