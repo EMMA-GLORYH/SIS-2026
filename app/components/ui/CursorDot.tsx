@@ -48,7 +48,7 @@ export default function CursorDot() {
           <>
             {/* 1. REINFORCED CENTER POINT - Increased size and subtle glow */}
             <motion.div
-              className="pointer-events-none fixed top-0 left-0 z-[10001] h-3 w-3 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]"
+              className="pointer-events-none fixed top-0 left-0 z-[10001] h-3 w-3 rounded-full bg-[#f7eedc] shadow-[0_0_18px_rgba(255,238,220,0.45)]"
               style={{
                 x: mouseX,
                 y: mouseY,
@@ -95,7 +95,7 @@ export default function CursorDot() {
 
             {/* 3. PROFESSIONAL BACKGROUND AURA */}
             <motion.div
-              className="pointer-events-none fixed top-0 left-0 z-[9999] h-24 w-24 rounded-full bg-blue-500/10 blur-3xl"
+              className="pointer-events-none fixed top-0 left-0 z-[9999] h-24 w-24 rounded-full bg-[#f7eedc]/15 blur-3xl"
               style={{
                 x: smoothX,
                 y: smoothY,

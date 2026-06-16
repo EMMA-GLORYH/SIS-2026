@@ -4,18 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Menu, X, ChevronDown, Bell, ArrowRight, Home, MessageSquare, ChevronRight, 
-  Briefcase, Users, Mail, Info, Target, Workflow, 
-  Award, Globe, ShieldCheck, Cpu, Zap, Lock, CheckCircle2, LogIn, LogOut, UserPlus, User
+import {
+  Menu, X, ChevronDown, Bell, ArrowRight, Home, MessageSquare, ChevronRight,
+  Briefcase, Users, Mail, Info, Target, Workflow,
+  Award, Globe, ShieldCheck, Cpu, Lock, LogIn, LogOut, UserPlus, User
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { isSupportUser } from "@/lib/support";
 import Button from "../ui/Button";
 
-
-/* DATA CONFIGURATION    */
-
+/* DATA CONFIGURATION */
 const NAVIGATION_DATA = {
   services: {
     title: "Our Services",
@@ -41,17 +39,6 @@ const NAVIGATION_DATA = {
   }
 };
 
-/* ===================== */
-/* TYPES                 */
-/* ===================== */
-interface AppNotification {
-  id: string;
-  client_name: string;
-  message: string;
-  created_at: string;
-  is_reviewed?: boolean;
-}
-
 export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -73,16 +60,13 @@ export default function Navbar() {
           .from("comments")
           .select("id", { count: "exact", head: true })
           .eq("is_reviewed", false);
-
         setNotificationCount(count ?? 0);
         if (error) console.warn("Error fetching admin notification count:", error.message);
         return;
       }
-
       const { count, error } = await supabase
         .from("news")
         .select("id", { count: "exact", head: true });
-
       setNotificationCount(count ?? 0);
       if (error) console.warn("Error fetching news count:", error.message);
     };
@@ -109,8 +93,8 @@ export default function Navbar() {
       setOpenMenu(null);
       setShowProfileDropdown(false);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
 
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
       subscription.unsubscribe();
@@ -130,12 +114,10 @@ export default function Navbar() {
         setShowProfileDropdown(false);
       }
     };
-
     window.addEventListener("click", handleOutsideClick, true);
     return () => window.removeEventListener("click", handleOutsideClick, true);
   }, [showProfileDropdown]);
 
-  // Logout Functionality
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setShowProfileDropdown(false);
@@ -144,36 +126,32 @@ export default function Navbar() {
 
   return (
     <>
-      <header 
-        className="sticky top-0 z-[100] bg-[#002147] text-white border-b border-white/10 shadow-xl"
+      <header
+        className="sticky top-0 z-[100] bg-[#FAF9F6] text-[#111111] border-b border-[#e6dcc9] shadow-md transition-colors duration-200"
         onMouseLeave={() => setOpenMenu(null)}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           
-          {/* LOGO */}
+          {/* LOGO (Text description removed, keeping only the icon) */}
           <Link href="/" className="flex items-center gap-4 group">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white text-[#002147] flex items-center justify-center font-black text-lg md:text-xl shadow-lg transition-transform group-hover:rotate-12">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#002147] text-white flex items-center justify-center font-black text-lg md:text-xl shadow-md transition-transform group-hover:rotate-12">
               NGI
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="text-sm md:text-base font-black tracking-tight leading-none uppercase">Solutions & ICT</span>
-              <span className="text-[9px] font-bold text-blue-300 tracking-[0.2em] uppercase">Services Limited</span>
             </div>
           </Link>
 
           {/* DESKTOP NAV */}
-          <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
-            <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
+          <nav className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
+            <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
             <NavTrigger label="Services" id="services" activeMenu={openMenu} setMenu={setOpenMenu} />
             <NavTrigger label="About NGI" id="about" activeMenu={openMenu} setMenu={setOpenMenu} />
-            <Link href="/team" className="hover:text-blue-400 transition-colors">Our Team</Link>
-            <Link href="/comments" className="hover:text-blue-400 transition-colors">Comment</Link>
-            <Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link>
+            <Link href="/team" className="hover:text-blue-600 transition-colors">Our Team</Link>
+            <Link href="/comments" className="hover:text-blue-600 transition-colors">Comment</Link>
+            <Link href="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
           </nav>
 
           {/* ACTIONS */}
           <div className="flex items-center gap-3 relative">
-
+            
             {/* NOTIFICATION BELL */}
             <div className="relative">
               <button
@@ -181,11 +159,11 @@ export default function Navbar() {
                   const destination = user && isSupportUser(user.email) ? "/notifications" : "/news";
                   router.push(destination);
                 }}
-                className="relative flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all active:scale-95"
+                className="relative flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 text-[#111111] rounded-full border border-slate-200 transition-all active:scale-95"
               >
                 <Bell size={18} />
                 {notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-black flex items-center justify-center border border-[#002147]">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-black text-white flex items-center justify-center border border-[#FAF9F6]">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </span>
                 )}
@@ -199,43 +177,43 @@ export default function Navbar() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowProfileDropdown((current) => !current)}
-                className="relative flex items-center gap-2 p-1 rounded-full border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+                className="relative flex items-center gap-2 p-1 rounded-full border border-slate-200 hover:bg-slate-100 transition-all active:scale-95 text-[#111111]"
               >
                 {user ? (
                   <div className="relative">
-                    <img 
-                      src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}&background=0D8ABC&color=fff`} 
-                      alt="User" 
+                    <img
+                      src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}&background=0D8ABC&color=fff`}
+                      alt="User"
                       referrerPolicy="no-referrer"
-                      className="w-8 h-8 rounded-full border border-blue-400 object-cover"
+                      className="w-8 h-8 rounded-full border border-blue-600 object-cover"
                     />
                     {isSupportUser(user.email) && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#001529]" />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#FAF9F6]" />
                     )}
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[#111111]">
                     <User size={18} />
                   </div>
                 )}
-                <ChevronDown size={14} className={`text-white/50 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-slate-500 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
               </Button>
-
+              
               <AnimatePresence>
                 {showProfileDropdown && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
+                    className="absolute top-full right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50"
                   >
                     {user ? (
                       <div className="p-4">
                         <div className="flex items-center gap-3 mb-4 p-2 bg-slate-50 rounded-xl">
-                          <img 
-                            src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}`} 
+                          <img
+                            src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}`}
                             referrerPolicy="no-referrer"
-                            className="w-10 h-10 rounded-full border border-slate-200 object-cover" 
+                            className="w-10 h-10 rounded-full border border-slate-200 object-cover"
                             alt="User avatar"
                           />
                           <div className="overflow-hidden">
@@ -245,13 +223,11 @@ export default function Navbar() {
                             <p className="text-slate-400 text-[10px] truncate">{user.email}</p>
                           </div>
                         </div>
-
                         {isSupportUser(user.email) && (
                           <div className="mb-4 px-2 py-1 bg-blue-50 rounded-lg border border-blue-100">
                             <p className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">Support Team Member</p>
                           </div>
                         )}
-
                         <Button
                           variant="danger"
                           size="sm"
@@ -263,17 +239,16 @@ export default function Navbar() {
                         </Button>
                       </div>
                     ) : (
-                      /* GUEST VIEW */
                       <div className="p-3 space-y-2">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-1">Account Access</p>
-                        <Link 
-                          href="/login" 
-                          className="flex items-center gap-3 px-4 py-3 text-[#002147] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
+                        <Link
+                          href="/login"
+                          className="flex items-center gap-3 px-4 py-3 text-[#111111] font-bold text-xs hover:bg-slate-50 rounded-xl transition-colors"
                         >
                           <LogIn size={16} className="text-blue-600" /> Log In
                         </Link>
-                        <Link 
-                          href="/signup" 
+                        <Link
+                          href="/signup"
                           className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 rounded-xl transition-all"
                         >
                           <UserPlus size={16} /> Sign Up Free
@@ -285,20 +260,26 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            {/* MENU BUTTON */}
-            <Button onClick={() => setSidebarOpen(true)} variant="primary" size="sm" className="flex items-center gap-2">
+            {/* MOBILE ONLY MENU BUTTON */}
+            <Button 
+              onClick={() => setSidebarOpen(true)} 
+              variant="primary" 
+              size="sm" 
+              className="md:hidden flex items-center gap-2 bg-[#111111] hover:bg-[#222222] text-white border-none"
+            >
               <Menu size={18} />
               <span className="hidden sm:inline text-xs uppercase tracking-tighter">Menu</span>
             </Button>
+
           </div>
         </div>
 
         {/* MEGA MENU */}
         <AnimatePresence>
           {openMenu && (NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]) && (
-            <MegaMenuContent 
-              data={NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]} 
-              onClose={() => setOpenMenu(null)} 
+            <MegaMenuContent
+              data={NAVIGATION_DATA[openMenu as keyof typeof NAVIGATION_DATA]}
+              onClose={() => setOpenMenu(null)}
             />
           )}
         </AnimatePresence>
@@ -312,16 +293,15 @@ export default function Navbar() {
 /* ===================== */
 /* SUB-COMPONENTS        */
 /* ===================== */
-
 function NavTrigger({ label, id, activeMenu, setMenu }: any) {
   return (
     <div onMouseEnter={() => setMenu(id)} className="relative py-2 cursor-pointer">
-      <div className={`flex items-center gap-1 transition-colors ${activeMenu === id ? "text-blue-400" : ""}`}>
+      <div className={`flex items-center gap-1 transition-colors ${activeMenu === id ? "text-blue-600" : "text-[#111111]"}`}>
         {label} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === id ? "rotate-180" : ""}`} />
       </div>
-      <motion.div 
+      <motion.div
         animate={{ width: activeMenu === id ? "100%" : "0%" }}
-        className="absolute -bottom-1 left-0 h-0.5 bg-blue-400"
+        className="absolute -bottom-1 left-0 h-0.5 bg-blue-600"
       />
     </div>
   );
@@ -329,11 +309,11 @@ function NavTrigger({ label, id, activeMenu, setMenu }: any) {
 
 function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -10 }} 
-      animate={{ opacity: 1, y: 0 }} 
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="hidden lg:block absolute left-0 w-full bg-white text-slate-900 shadow-2xl border-b border-slate-200"
+      className="hidden md:block absolute left-0 w-full bg-white text-slate-900 shadow-2xl border-b border-slate-200"
     >
       <div className="max-w-7xl mx-auto flex min-h-[400px]">
         <div className="w-1/3 bg-slate-50 p-12 border-r border-slate-100 flex flex-col justify-between">
@@ -346,7 +326,6 @@ function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) 
             Start Your Project <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
-
         <div className="w-2/3 p-12 grid grid-cols-2 gap-x-12 gap-y-10">
           {data.items.map((item: any, idx: number) => (
             <Link key={idx} href={item.href} onClick={onClose} className="group flex items-start gap-4">
@@ -368,20 +347,14 @@ function MegaMenuContent({ data, onClose }: { data: any, onClose: () => void }) 
 /* ===================== */
 /* SIDEBAR DRAWER        */
 /* ===================== */
-
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  
   const [user, setUser] = useState<any>(null);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
   }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace("/");
-  };
 
   return (
     <AnimatePresence>
@@ -396,14 +369,13 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             <div className="bg-[#002147] text-white p-8">
               <div className="flex items-center justify-between mb-8">
                 <div className="w-12 h-12 rounded-xl bg-white text-[#002147] flex items-center justify-center font-black text-xl">NGI</div>
-                <Button onClick={onClose} variant="icon" size="icon" className="p-2 hover:bg-white/10">
+                <Button onClick={onClose} variant="icon" size="icon" className="p-2 hover:bg-white/10 text-white">
                   <X size={24} />
                 </Button>
               </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Menu</h2>
               <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-2">Simple Technology. Powerful Results.</p>
             </div>
-
             <div className="p-6 space-y-2">
               <SidebarLink href="/" icon={<Home size={20} />} label="Home" onClick={onClose} />
               
@@ -434,7 +406,6 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                 <SidebarLink href="/admin" icon={<Briefcase size={20} />} label="Admin Portal" onClick={onClose} />
               )}
             </div>
-
             <div className="mt-8 p-8 border-t border-slate-100 bg-slate-50 text-center">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-loose">
                 Architecting Institutional Efficiency

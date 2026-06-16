@@ -109,7 +109,7 @@ export default function AdminIndexPage() {
         onMouseLeave={() => setIsSidebarHovered(false)}
         animate={{ width: isDrawerExpanded ? "280px" : "76px" }}
         transition={{ type: "spring", damping: 26, stiffness: 240 }}
-        className="hidden md:flex flex-col fixed top-0 left-0 h-full bg-slate-900 text-slate-200 border-r border-slate-800 z-40 overflow-hidden shadow-xl"
+        className="hidden flex-col fixed top-0 left-0 h-full bg-slate-900 text-slate-200 border-r border-slate-800 z-40 overflow-hidden shadow-xl"
       >
         {/* Sidebar Header Brand Area */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
@@ -330,11 +330,7 @@ export default function AdminIndexPage() {
       {/* 4. MAIN CORE CONTENT DESK LAYOUT */}
       <div 
         className="flex-1 flex flex-col min-w-0 transition-all duration-300"
-        style={{ 
-          paddingLeft: typeof window !== "undefined" && window.innerWidth >= 768 
-            ? (isDrawerExpanded ? "280px" : "76px") 
-            : "0px" 
-        }}
+        style={{ paddingLeft: "0px" }}
       >
         {/* Safe padding spacing container to clear top navigation on small viewpoints */}
         <main className="relative flex-1 bg-slate-50 pt-24 pb-12 md:pt-8 px-4 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto space-y-8">
