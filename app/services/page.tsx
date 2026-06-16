@@ -2,7 +2,6 @@
 
 import HeroSlider from "../components/HeroSlider";
 import { services } from "../data/service";
-import { Service } from "../types/service";
 import Card from "../components/ui/Card";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,7 +21,7 @@ export default function ServicesPage() {
     "https://images.unsplash.com/photo-1591405351990-4726e331f141?q=80&w=600&auto=format&fit=crop", // Repair
     "https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=600&auto=format&fit=crop", // Engineering
     "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop", // Hardware
-    "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format&fit=crop", // Design UI
+    "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format&fit=crop", // Design UI User Interface
     "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=600&auto=format&fit=crop", // Business
     "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=600&auto=format&fit=crop", // Graphic Design
     "https://images.unsplash.com/photo-1588702547919-26089e690ecc?q=80&w=600&auto=format&fit=crop", // Laptop internals
