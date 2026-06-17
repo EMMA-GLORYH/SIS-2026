@@ -4,6 +4,7 @@ import InstitutionalServices from "@/app/components/home/InstitutionalServices";
 import LatestNews from "@/app/components/home/LatestNews";
 import Testimonials from "@/app/components/home/Testimonials";
 import FeaturedProjects from "@/app/components/home/FeaturedProjects";
+import ImpactStats from "@/app/components/home/ImpactStats";
 
 export default function HomePage() {
   return (
@@ -12,6 +13,7 @@ export default function HomePage() {
       <TechStackStrip />
       <InstitutionalServices />
       <FeaturedProjects />
+      <ImpactStats />  
       <LatestNews />
       <Testimonials />
     </main>
