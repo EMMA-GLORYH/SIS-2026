@@ -1,383 +1,512 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  LayoutDashboard, 
-  Newspaper, 
-  MessageSquare, 
-  ChevronLeft, 
-  ChevronRight, 
-  User, 
-  Menu, 
-  X, 
-  LogOut, 
-  ShieldAlert,
-  Info
+import {
+  LayoutDashboard, FolderOpen, MessageSquare, Newspaper,
+  Settings, ChevronLeft, ChevronRight, LogOut,
+  Loader2, Menu, Home, X
 } from "lucide-react";
-import AdminHero from "@/app/components/admin/AdminHero";
-import AdminStats from "@/app/components/admin/AdminStats";
-import AdminCards from "@/app/components/admin/AdminCards";
-import AdminNewsModal from "../components/admin/AdminNewsModal";
-import AdminCommentsModal from "../components/admin/AdminCommentsModal";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { isSupportUser } from "@/lib/support";
 
-interface AdminInfo {
-  name: string;
-  email: string;
-  avatarUrl?: string;
-}
+/* ── Admin Section Components ── */
+/* ── Admin Section Components ── */
+import AdminToast from "@/app/components/admin/AdminToast";
+import OverviewSection from "@/app/components/admin/OverviewSection";
+import ProjectsManager from "@/app/components/admin/ProjectsManager";
+import CommentsManager from "@/app/components/admin/CommentsManager";
+import NewsManager from "@/app/components/admin/NewsManager";
+import SettingsSection from "@/app/components/admin/SettingsSection";
 
-type AdminSection = "overview" | "news" | "comments";
+/* ═══════════════════════════════════════════ */
+/*  TYPES & CONFIG                             */
+/* ═══════════════════════════════════════════ */
+type AdminView = "overview" | "projects" | "comments" | "news" | "settings";
+type CountKey = "pendingComments";
 
-export default function AdminIndexPage() {
+type NavItem = {
+  id: AdminView;
+  label: string;
+  icon: React.ElementType;
+  description: string;
+  countKey?: CountKey;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard, description: "Dashboard summary & quick actions" },
+  { id: "projects", label: "Projects", icon: FolderOpen, description: "Manage featured project showcase" },
+  { id: "comments", label: "Comments", icon: MessageSquare, description: "Moderate client feedback", countKey: "pendingComments" },
+  { id: "news", label: "News & Updates", icon: Newspaper, description: "Publish announcements" },
+  { id: "settings", label: "Settings", icon: Settings, description: "Account & system info" },
+];
+
+/* ═══════════════════════════════════════════ */
+/*  MAIN ADMIN PAGE                            */
+/* ═══════════════════════════════════════════ */
+export default function AdminDashboard() {
   const router = useRouter();
-  const [admin, setAdmin] = useState<AdminInfo | null>(null);
-  const [counts, setCounts] = useState({ news: 0, comments: 0, pendingComments: 0 });
-  const [loading, setLoading] = useState(true);
-  
-  // Sidebar State Management (Desktop & Mobile)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<AdminSection>("overview");
 
-  // Determine if drawer is open or expanded visually
-  const isDrawerExpanded = !isSidebarCollapsed || isSidebarHovered;
+  /* Auth */
+  const [user, setUser] = useState<any>(null);
+  const [authorized, setAuthorized] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
+  /* Sidebar */
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeView, setActiveView] = useState<AdminView>("overview");
+
+  /* Toast */
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const showToast = useCallback((message: string, type: "success" | "error") => {
+    setToast({ message, type });
+  }, []);
+
+  /* Counts */
+  const [counts, setCounts] = useState<Record<CountKey, number>>({ pendingComments: 0 });
+  const prevCountsRef = useRef<Record<CountKey, number>>({ pendingComments: 0 });
+
+  /* Stats */
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    featuredProjects: 0,
+    totalComments: 0,
+    pendingComments: 0,
+    totalNews: 0,
+  });
+
+  const activeNav = NAV_ITEMS.find((n) => n.id === activeView)!;
+
+  /* ── Auth Check ── */
   useEffect(() => {
-    const init = async () => {
-      const result = await supabase.auth.getSession();
-      const session = result.data.session;
-      const email = session?.user?.email ?? null;
-      if (!session?.user || !email || !isSupportUser(email)) {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (!currentUser || !isSupportUser(currentUser.email)) {
         router.replace("/");
         return;
       }
-
-      setAdmin({
-        name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "Team Member",
-        email,
-        avatarUrl: session.user.user_metadata?.avatar_url ?? undefined,
-      });
-
-      try {
-        const [newsCount, commentsCount, pendingCommentsCount] = await Promise.all([
-          supabase.from("news").select("id", { count: "exact", head: true }).then((res) => res.count ?? 0),
-          supabase.from("comments").select("id", { count: "exact", head: true }).then((res) => res.count ?? 0),
-          supabase.from("comments").select("id", { count: "exact", head: true }).eq("is_reviewed", false).then((res) => res.count ?? 0),
-        ]);
-        setCounts({ news: newsCount, comments: commentsCount, pendingComments: pendingCommentsCount });
-      } catch (error) {
-        console.error("Error loading admin stats:", error);
-      } finally {
-        setLoading(false);
-      }
+      setAuthorized(true);
+      setAuthLoading(false);
     };
-    init();
+    checkAuth();
   }, [router]);
 
-  const handleSignOut = async () => {
+  /* ── Fetch Stats ── */
+  const fetchStats = useCallback(async () => {
+    const [projectsRes, featuredRes, commentsRes, pendingRes, newsRes] = await Promise.all([
+      supabase.from("projects").select("id", { count: "exact", head: true }),
+      supabase.from("projects").select("id", { count: "exact", head: true }).eq("is_featured", true),
+      supabase.from("comments").select("id", { count: "exact", head: true }),
+      supabase.from("comments").select("id", { count: "exact", head: true }).eq("is_reviewed", false),
+      supabase.from("news").select("id", { count: "exact", head: true }),
+    ]);
+    setStats({
+      totalProjects: projectsRes.count ?? 0,
+      featuredProjects: featuredRes.count ?? 0,
+      totalComments: commentsRes.count ?? 0,
+      pendingComments: pendingRes.count ?? 0,
+      totalNews: newsRes.count ?? 0,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (authorized) fetchStats();
+  }, [authorized, activeView, fetchStats]);
+
+  /* ── Real-time pending comments ── */
+  useEffect(() => {
+    if (!authorized) return;
+
+    const fetchPendingCount = async () => {
+      const { count } = await supabase
+        .from("comments")
+        .select("id", { count: "exact", head: true })
+        .eq("is_reviewed", false);
+      const newCount = count || 0;
+      const prev = prevCountsRef.current.pendingComments;
+      if (newCount > prev) {
+        setCounts((p) => ({ ...p, pendingComments: newCount }));
+      }
+      prevCountsRef.current.pendingComments = newCount;
+    };
+
+    fetchPendingCount();
+
+    const channel = supabase
+      .channel("admin_comments_count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, fetchPendingCount)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [authorized]);
+
+  /* ── Handle Nav ── */
+  const handleNav = (id: AdminView | string) => {
+    const navItem = NAV_ITEMS.find((n) => n.id === id);
+    if (navItem?.countKey) {
+      setCounts((prev) => ({ ...prev, [navItem.countKey!]: 0 }));
+      prevCountsRef.current[navItem.countKey!] = 0;
+    }
+    setActiveView(id as AdminView);
+    setMobileOpen(false);
+  };
+
+  /* ── Logout ── */
+  const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace("/");
   };
 
-  const sideNavItems: Array<{
-    id: AdminSection;
-    label: string;
-    icon: typeof LayoutDashboard;
-    badge?: number;
-  }> = [
-    { id: "overview", label: "Dashboard Home", icon: LayoutDashboard },
-    { id: "news", label: "Announcements & News", icon: Newspaper },
-    { id: "comments", label: "Customer Reviews", icon: MessageSquare, badge: counts.pendingComments },
-  ];
+  /* ── Auth Guard ── */
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={32} className="text-[#FAF9F6]/20 animate-spin mx-auto mb-4" />
+          <p className="text-[#FAF9F6]/20 text-xs font-bold uppercase tracking-widest">
+            Verifying Access
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (!authorized) return null;
 
-  const handleSectionChange = (section: AdminSection) => {
-    setActiveSection(section);
-    setIsMobileSidebarOpen(false);
-  };
-
+  /* ═══════════════════════════════════════════ */
+  /*  RENDER                                     */
+  /* ═══════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased flex">
-      
-      {/* 1. DESKTOP/TABLET SIDEBAR DRAWER (Supabase Hover-Collapse Architecture) */}
-      <motion.aside 
-        onMouseEnter={() => setIsSidebarHovered(true)}
-        onMouseLeave={() => setIsSidebarHovered(false)}
-        animate={{ width: isDrawerExpanded ? "280px" : "76px" }}
-        transition={{ type: "spring", damping: 26, stiffness: 240 }}
-        className="hidden flex-col fixed top-0 left-0 h-full bg-slate-900 text-slate-200 border-r border-slate-800 z-40 overflow-hidden shadow-xl"
+    <div className="min-h-screen bg-[#0a0a0a] flex">
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <AdminToast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ═══ MOBILE OVERLAY ═══ */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ═══ SIDEBAR ═══ */}
+      <aside
+        className={`
+          fixed top-0 left-0 z-[160] h-full flex flex-col
+          bg-[#111111] border-r border-[#1a1a1a]
+          transition-all duration-300 ease-in-out
+          ${sidebarCollapsed ? "w-[72px]" : "w-[268px]"}
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        `}
       >
-        {/* Sidebar Header Brand Area */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="h-9 w-9 min-w-[36px] rounded-xl bg-blue-600 flex items-center justify-center font-black text-white shadow-md shadow-blue-600/20">
-              A
-            </div>
-            {isDrawerExpanded && (
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }} 
-                animate={{ opacity: 1, x: 0 }} 
-                className="flex flex-col select-none"
+        {/* Sidebar Header */}
+        <div
+          className={`flex items-center h-16 shrink-0 px-4 border-b border-[#1a1a1a] ${
+            sidebarCollapsed ? "justify-center" : "justify-between"
+          }`}
+        >
+          <AnimatePresence mode="wait">
+            {sidebarCollapsed ? (
+              <motion.div
+                key="collapsed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-10 h-10 rounded-xl bg-[#FAF9F6]/10 flex items-center justify-center text-[#FAF9F6] font-black text-sm border border-[#FAF9F6]/10"
               >
-                <span className="text-xs font-black tracking-wider uppercase text-white leading-none">Management</span>
-                <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">Control Panel</span>
+                N
+              </motion.div>
+            ) : (
+              <motion.div
+                key="expanded"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FAF9F6]/10 flex items-center justify-center text-[#FAF9F6] font-black text-sm border border-[#FAF9F6]/10">
+                  NGI
+                </div>
+                <div>
+                  <p className="text-[#FAF9F6] font-black text-sm uppercase tracking-tight leading-none">
+                    Admin
+                  </p>
+                  <p className="text-[#FAF9F6]/20 text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                    Management Suite
+                  </p>
+                </div>
               </motion.div>
             )}
-          </div>
+          </AnimatePresence>
 
-          {/* Explicit Manual Collapse Pin Toggle Button */}
-          {isDrawerExpanded && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsSidebarCollapsed(!isSidebarCollapsed);
-              }} 
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
-              title={isSidebarCollapsed ? "Pin Sidebar Open" : "Collapse Sidebar"}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex w-7 h-7 items-center justify-center text-[#FAF9F6]/30 hover:text-[#FAF9F6] transition-colors"
             >
-              <ChevronLeft size={16} />
+              {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
-          )}
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden w-8 h-8 rounded-lg bg-[#FAF9F6]/5 hover:bg-[#FAF9F6]/10 flex items-center justify-center text-[#FAF9F6]/40"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
-        {/* Navigation Item List */}
-        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          {sideNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeSection === item.id;
+        {/* Accent line */}
+        <div className="h-[1px] bg-gradient-to-r from-transparent via-[#FAF9F6]/10 to-transparent shrink-0" />
+
+        {/* Navigation */}
+        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+          <AnimatePresence>
+            {!sidebarCollapsed && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-[8px] font-black text-[#FAF9F6]/15 uppercase tracking-[0.25em] px-3 pt-2 pb-3"
+              >
+                Management
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {NAV_ITEMS.map(({ id, label, icon: Icon, description, countKey }) => {
+            const isActive = activeView === id;
+            const currentCount = countKey ? counts[countKey] : 0;
+
             return (
               <button
-                key={item.id}
-                onClick={() => handleSectionChange(item.id)}
-                className={`w-full flex items-center justify-between rounded-xl p-3 text-xs font-bold uppercase tracking-wider transition-all relative group ${
-                  isActive 
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/10" 
-                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-                }`}
+                key={id}
+                onClick={() => handleNav(id)}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-3 text-left
+                  transition-all duration-200 group relative rounded-xl
+                  ${
+                    isActive
+                      ? "bg-[#FAF9F6] text-[#111111]"
+                      : "text-[#FAF9F6]/40 hover:text-[#FAF9F6]/70 hover:bg-[#FAF9F6]/5"
+                  }
+                `}
+                title={sidebarCollapsed ? label : undefined}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Icon size={18} className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`} />
-                  {isDrawerExpanded && (
-                    <motion.span 
-                      initial={{ opacity: 0 }} 
-                      animate={{ opacity: 1 }} 
-                      className="truncate"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    isActive ? "bg-[#111111]/10" : ""
+                  }`}
+                >
+                  <Icon size={18} />
                 </div>
 
-                {/* Badge Monitoring Alert Counters */}
-                {item.badge !== undefined && item.badge > 0 && (
-                  <>
-                    {isDrawerExpanded ? (
-                      <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[10px] font-black ${
-                        isActive ? "bg-white text-blue-600" : "bg-amber-500 text-slate-950"
-                      }`}>
-                        {item.badge}
-                      </span>
-                    ) : (
-                      <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500" />
-                    )}
-                  </>
+                <AnimatePresence>
+                  {!sidebarCollapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "auto" }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className="min-w-0 flex items-center justify-between flex-grow overflow-hidden"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-[11px] uppercase tracking-[0.15em] font-bold leading-none whitespace-nowrap">
+                          {label}
+                        </p>
+                        {!isActive && (
+                          <p className="text-[9px] mt-1 truncate text-[#FAF9F6]/20 group-hover:text-[#FAF9F6]/30">
+                            {description}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {currentCount > 0 && (
+                  <span
+                    className={`
+                    ${sidebarCollapsed ? "absolute top-1 right-1" : "ml-auto"}
+                    flex h-5 min-w-5 items-center justify-center rounded-full
+                    bg-red-500 text-[9px] font-black text-white leading-none px-1.5
+                  `}
+                  >
+                    {currentCount > 9 ? "9+" : currentCount}
+                  </span>
+                )}
+
+                {sidebarCollapsed && (
+                  <div className="absolute left-full ml-3 px-3 py-2 text-[10px] uppercase tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50 bg-[#111] border border-[#222] text-[#FAF9F6] rounded-xl shadow-lg">
+                    {label}
+                    {currentCount > 0 && ` (${currentCount})`}
+                  </div>
                 )}
               </button>
             );
           })}
         </nav>
 
-        {/* Sidebar Footer Zone containing Account Meta Data */}
-        <div className="p-3 border-t border-slate-800 bg-slate-950/40 shrink-0">
-          <div className="flex items-center justify-between gap-2 overflow-hidden">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="h-9 w-9 min-w-[36px] rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center shadow-inner">
-                {admin?.avatarUrl ? (
-                  <img src={admin.avatarUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <User size={16} className="text-slate-400" />
-                )}
-              </div>
-              {isDrawerExpanded && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="truncate min-w-0">
-                  <p className="text-xs font-bold text-slate-200 truncate leading-tight">{admin?.name || "Admin User"}</p>
-                  <p className="text-[10px] font-medium text-slate-500 truncate mt-0.5">{admin?.email}</p>
-                </motion.div>
+        {/* Sidebar Footer */}
+        <div className="shrink-0 p-3 border-t border-[#1a1a1a] space-y-1">
+          <Link
+            href="/"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#FAF9F6]/30 hover:text-[#FAF9F6]/60 hover:bg-[#FAF9F6]/5 transition-all"
+          >
+            <Home size={18} />
+            <AnimatePresence>
+              {!sidebarCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xs font-bold uppercase tracking-wider"
+                >
+                  Back to Site
+                </motion.span>
               )}
-            </div>
-            
-            {isDrawerExpanded && (
-              <button 
-                onClick={handleSignOut}
-                className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition shrink-0"
-                title="Sign Out"
-              >
-                <LogOut size={16} />
-              </button>
-            )}
-          </div>
-        </div>
+            </AnimatePresence>
+          </Link>
 
-        {/* Unpinned Float Toggle Handle on Left Edge boundary */}
-        {isSidebarCollapsed && !isSidebarHovered && (
-          <div className="absolute bottom-6 right-0 left-0 flex justify-center pointer-events-none">
-            <div className="p-1 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
-              <ChevronRight size={12} />
-            </div>
-          </div>
-        )}
-      </motion.aside>
-
-      {/* 2. TABLET / MOBILE NAVIGATION TOP BAR Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 flex items-center justify-between shadow-sm z-50">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-xs">
-            A
-          </div>
-          <div>
-            <p className="text-xs font-black text-slate-900 uppercase tracking-wider">Admin Portal</p>
-            <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold">NGI Management</p>
-          </div>
-        </div>
-        <button
-          onClick={() => setIsMobileSidebarOpen((current) => !current)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm hover:bg-slate-100 transition"
-          aria-label={isMobileSidebarOpen ? "Close Control Drawer" : "Open Control Drawer"}
-        >
-          {isMobileSidebarOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
-      </div>
-
-      {/* 3. MOBILE DROP SIDEBAR DRAWER MODAL */}
-      <AnimatePresence>
-        {isMobileSidebarOpen && (
-          <>
-            {/* Dark scrim underlay wrapper */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 md:hidden"
-            />
-            {/* Slide down operational panel */}
-            <motion.aside
-              initial={{ y: "-100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "-100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 28, stiffness: 250 }}
-              className="md:hidden fixed top-16 left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-b-[2rem]"
-            >
-              <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Navigation Deck</span>
-                <span className="text-[10px] text-slate-400 font-semibold bg-slate-200/60 px-2 py-0.5 rounded-full">Tap to shift view</span>
-              </div>
-              <div className="p-4 space-y-1.5">
-                {sideNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSection === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleSectionChange(item.id)}
-                      className={`w-full flex items-center justify-between rounded-xl p-3.5 text-xs font-bold uppercase tracking-wider transition ${
-                        isActive ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10" : "text-slate-600 bg-slate-50 hover:bg-slate-100"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon size={18} className={isActive ? "text-white" : "text-slate-400"} />
-                        <span>{item.label}</span>
-                      </div>
-                      {typeof item.badge === "number" && item.badge > 0 && (
-                        <span className={`h-5 px-2 rounded-full flex items-center justify-center text-[10px] font-black ${
-                          isActive ? "bg-white text-blue-600" : "bg-amber-500 text-white"
-                        }`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Mobile Account Details Context */}
-              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between rounded-b-[2rem]">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="h-8 w-8 rounded-lg bg-slate-200 flex items-center justify-center text-slate-600 shrink-0">
-                    <User size={14} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-slate-900 leading-none">{admin?.name}</p>
-                    <p className="truncate text-[10px] text-slate-500 mt-0.5">{admin?.email}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={handleSignOut} 
-                  className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-[10px] font-black uppercase tracking-wider bg-red-50 hover:bg-red-100/50 transition"
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all"
+          >
+            <LogOut size={18} />
+            <AnimatePresence>
+              {!sidebarCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xs font-bold uppercase tracking-wider"
                 >
                   Sign Out
-                </button>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
 
-      {/* 4. MAIN CORE CONTENT DESK LAYOUT */}
-      <div 
-        className="flex-1 flex flex-col min-w-0 transition-all duration-300"
-        style={{ paddingLeft: "0px" }}
-      >
-        {/* Safe padding spacing container to clear top navigation on small viewpoints */}
-        <main className="relative flex-1 bg-slate-50 pt-24 pb-12 md:pt-8 px-4 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto space-y-8">
-          
-          {activeSection === "overview" && (
-            <div className="flex flex-col gap-8">
-              {/* Profile greeting block */}
-              <AdminHero name={admin?.name} loading={loading} />
-              
-              {/* Key system metrics display counter panel */}
-              <AdminStats counts={counts} loading={loading} />
-              
-              {/* Direct feature router action matrices */}
-              <AdminCards 
-                onNewsClick={() => handleSectionChange("news")} 
-                onCommentsClick={() => handleSectionChange("comments")} 
-              />
-              
-              {/* Security configuration policy details information card */}
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex gap-4 items-start">
-                <div className="p-2 rounded-xl bg-blue-50 text-blue-600 shrink-0 border border-blue-100">
-                  <Info size={18} />
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Access Security Policy</h2>
-                  <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Only specialized email structures configured securely via system environment variables can utilize this gateway dashboard. If an unvetted account session attempts loading, automated row isolation loops will execute and instantly dispatch access denial procedures.
+          {!sidebarCollapsed && user && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-2 p-3 bg-[#0a0a0a] rounded-xl border border-[#1a1a1a]"
+            >
+              <div className="flex items-center gap-2">
+                <img
+                  src={
+                    user.user_metadata?.avatar_url ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.email
+                    )}&background=111111&color=FAF9F6`
+                  }
+                  className="w-7 h-7 rounded-lg object-cover border border-[#222]"
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
+                <div className="overflow-hidden">
+                  <p className="text-[#FAF9F6]/60 text-[10px] font-bold truncate">
+                    {user.user_metadata?.full_name || "Administrator"}
                   </p>
+                  <p className="text-[#FAF9F6]/20 text-[9px] truncate">{user.email}</p>
                 </div>
-              </section>
-            </div>
+              </div>
+            </motion.div>
           )}
+        </div>
+      </aside>
 
-          {activeSection === "news" && (
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-              <AdminNewsModal onClose={() => handleSectionChange("overview")} />
+      {/* ═══ MAIN CONTENT ═══ */}
+      <main
+        className={`flex-1 min-w-0 transition-all duration-300 ${
+          sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[268px]"
+        }`}
+      >
+        {/* Top Bar */}
+        <div className="sticky top-0 z-[50] bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-[#1a1a1a]">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="lg:hidden w-10 h-10 rounded-xl bg-[#111] border border-[#222] flex items-center justify-center text-[#FAF9F6]/40 hover:text-[#FAF9F6] transition-all"
+              >
+                <Menu size={18} />
+              </button>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                <span className="text-[#FAF9F6]/20">Admin</span>
+                <ChevronRight size={10} className="text-[#FAF9F6]/10" />
+                <span className="text-[#FAF9F6]">{activeNav.label}</span>
+              </div>
             </div>
-          )}
-
-          {activeSection === "comments" && (
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-              <AdminCommentsModal onClose={() => handleSectionChange("overview")} />
+            <div className="flex items-center gap-3">
+              <p className="hidden sm:block text-[9px] uppercase tracking-widest text-[#FAF9F6]/15">
+                {activeNav.description}
+              </p>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#111] rounded-xl border border-[#222]">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-[9px] font-black text-[#FAF9F6]/20 uppercase tracking-widest hidden sm:inline">
+                  Online
+                </span>
+              </div>
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        </div>
 
+        {/* Content Area — Component Switching */}
+        <div className="p-6 md:p-10">
+          <AnimatePresence mode="wait">
+            {activeView === "overview" && (
+              <OverviewSection
+                key="overview"
+                stats={stats}
+                onNavigate={handleNav}
+              />
+            )}
+            {activeView === "projects" && (
+              <ProjectsManager
+                key="projects"
+                showToast={showToast}
+                onRefreshStats={fetchStats}
+              />
+            )}
+            {activeView === "comments" && (
+              <CommentsManager
+                key="comments"
+                showToast={showToast}
+                onRefreshStats={fetchStats}
+              />
+            )}
+            {activeView === "news" && (
+              <NewsManager
+                key="news"
+                showToast={showToast}
+                onRefreshStats={fetchStats}
+              />
+            )}
+            {activeView === "settings" && (
+              <SettingsSection key="settings" user={user} />
+            )}
+          </AnimatePresence>
+        </div>
+      </main>
     </div>
   );
 }

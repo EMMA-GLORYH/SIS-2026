@@ -3,6 +3,7 @@ import TechStackStrip from "@/app/components/home/TechStackStrip";
 import InstitutionalServices from "@/app/components/home/InstitutionalServices";
 import LatestNews from "@/app/components/home/LatestNews";
 import Testimonials from "@/app/components/home/Testimonials";
+import FeaturedProjects from "@/app/components/home/FeaturedProjects";
 
 export default function HomePage() {
   return (
@@ -10,6 +11,7 @@ export default function HomePage() {
       <HeroSlider />
       <TechStackStrip />
       <InstitutionalServices />
+      <FeaturedProjects />
       <LatestNews />
       <Testimonials />
     </main>
